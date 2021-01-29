@@ -14,11 +14,6 @@ x <- c(1,2,3,41,1,12,3,-23,12, NA, NA)
 x.mean <- mean(x)
 x.mean <- mean(x, na.rm = TRUE)
 
-# Case with trim
-# Allows you to trim data after certain threshold
-x <- c(1,2,3,41,1,12,3,-23,12)
-x.mean <- mean(x, trim = 20)
-
 #
 # MEDIAN
 ?median()
@@ -27,11 +22,15 @@ x.median <- median(x)
 #
 # MODE
 ?mode
+?mod()
 mode(x)
 # different functionality here
 
 # We can create custom function in order to show the value with
-# the highest occurance
+# the highest occurrence
+?unique
+?tablulate
+?which.max()
 
 math.mode <- function (x) {
     uniqv <- unique(x)
@@ -44,6 +43,17 @@ math.mode(x)
 ?table
 table(x)
 
+# STANDARD DEVIATION
+?sd()
+sd(x)
+
+# STANDARD ERROR
+# SEM is calculated by taking the standard deviation and dividing 
+# it by the square root of the sample size
+stde <- function(y) sd(y)/sqrt(length(y))
+stde(x)
+
+# QUANTILE
 ?quantile
 quantile(x)
 

@@ -6,13 +6,19 @@
 # Book: https://amzn.to/2TU78ip
 # State of art :) Cheat Sheets: 
 # https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf
+# Gallery with tones of good samples: https://www.r-graph-gallery.com/boxplot.html
 
 # GGPLOT2
 
 library(ggplot2)
 
 # ggplot2 is based on the grammar of graphics
-# same components for every graph: dataset, coordinate system, 'geoms' - marks to represent data points
+# same components for every graph: dataset, coordinate system, 'geoms' - marks to 
+# represent data points
+
+# GEOM
+# Use a geom function to represent data points, use the geom’s aesthetic properties 
+# to represent variables. Each function returns a layer.
 
 # ggplot() Begins a plot that you finish by adding layers to.
 # ggsave("name.png", width = x, height = y) Saves last plot as x' x y' file "name.png" in current wd.
@@ -156,5 +162,46 @@ j + geom_crossbar(fatten = 2)
 j + geom_errorbar()
 j + geom_pointrange()
 
-# ... and much much more: Scales, Coordinate systems, Themes, Labels, Position adjustment
-# check 2nd cheat sheet.
+# FACETING
+# Facets divide a plot into  subplots based on the values of one or more discrete variables.
+
+t <- ggplot(mpg, aes(cty, hwy)) + geom_point()
+
+?facet_grid()
+t + facet_grid(cols = vars(fl))
+
+t + facet_grid(rows = vars(year))
+
+# LABELS
+t + labs(x = "New x axis label", y = "New y axis label", 
+          title ="Add a title above the plot", 
+          subtitle = "Add a subtitle below title")
+
+t + annotate(geom = "text", x = 8, y = 9, label = "A")
+
+# LEGENDS
+d <- ggplot(mpg, aes(fl))
+n <- d + geom_bar(aes(fill = fl))
+
+# Place legend at "bottom", "top", "left", or "right"
+?theme()
+n + theme(legend.position = "bottom")
+
+# Remove the legend title
+n
+n + theme(legend.title = element_blank())
+
+# Set legend title and labels with a scale function.
+n + scale_fill_discrete(name = "Title", labels = c("A", "B", "C", "D", "E"))
+
+# ZOOMING
+t <- ggplot(mpg, aes(cty, hwy)) + geom_point()
+t
+
+?coord_cartesian()
+t + coord_cartesian(xlim = c(0, 100), ylim = c(10, 20))
+
+# ... and much much more: check 2nd cheat sheet.
+
+# Great examples:
+# https://www.r-graph-gallery.com/index.html
