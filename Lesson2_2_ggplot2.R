@@ -44,6 +44,7 @@ ggplot(diamonds) + geom_smooth(aes(x=carat, y=price, color=cut))
 ?seals
 a <- ggplot(economics, aes(date, unemploy)) 
 b <- ggplot(seals, aes(x = long, y = lat))
+class(a)
 
 ?geom_blank()
 a + geom_blank()
@@ -166,7 +167,7 @@ j + geom_pointrange()
 # Facets divide a plot into  subplots based on the values of one or more discrete variables.
 
 t <- ggplot(mpg, aes(cty, hwy)) + geom_point()
-
+?mpg
 ?facet_grid()
 t + facet_grid(cols = vars(fl))
 
@@ -176,13 +177,13 @@ t + facet_grid(rows = vars(year))
 t + labs(x = "New x axis label", y = "New y axis label", 
           title ="Add a title above the plot", 
           subtitle = "Add a subtitle below title")
-
+?labs()
 t + annotate(geom = "text", x = 8, y = 9, label = "A")
 
 # LEGENDS
 d <- ggplot(mpg, aes(fl))
 n <- d + geom_bar(aes(fill = fl))
-
+n
 # Place legend at "bottom", "top", "left", or "right"
 ?theme()
 n + theme(legend.position = "bottom")
