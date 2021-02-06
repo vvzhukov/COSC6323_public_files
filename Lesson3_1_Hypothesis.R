@@ -5,6 +5,15 @@
 # https://data-flair.training/blogs/hypothesis-testing-in-r/
 # https://statistics.berkeley.edu/computing/r-t-tests
 
+# Plan:
+# 1. Repeat theory
+# 2. Student's t-Test
+# 3. Wilcoxon Rank Sum and Signed Rank Tests
+# 4. Correlation, Variance and Covariance
+# 5. Pearson's Chi-squared Test for Count Data
+# 6. Exercise review
+# 7. Gephi links (check BB)
+
 # Null hypothesis 
 # Alternate hypothesis
 
@@ -22,6 +31,13 @@
 # hypothesis. The power of the test is represented by the symbol β (beta).
 
 # Student's T-test
+
+# Student’s t-test or t-test (the real name is W.S. Gossett who hid his name due to his 
+# position as a worker in a brewery company) is a simple yet very useful statistical test. 
+# The basic idea behind t-test is the inference problem from a small sample size data set to 
+# test whether its sample mean may have large deviation from the true population mean.
+# Good explanation: https://suinotes.wordpress.com/2009/11/30/understanding-t-test-in-r/
+
 # t.test(data.1, data.2) – The basic method of applying a t-test is to 
 # compare two vectors of numeric data.
 
@@ -45,10 +61,31 @@
 # the two samples to be selected from the predictor should be specified by the subset instruction from the column of the data.
 
 # Two-Sample T-test with Unequal Variance
-set.seed(5)
+?set.seed()
+
+set.seed(500)
+
+?rnorm
 x = rnorm(10)
 y = rnorm(10)
-t.test(x,y)
+test <- t.test(x,y)
+test
+# What does that mean?
+# p < 0.05 => strong evidence against the null hypothesis, so you reject it
+
+# Our study finds that Variable are on average 
+round(test$estimate[1] - test$estimate[2], 3)
+# higher in the X group compared to the Y group
+# t-statistic, p and, CI
+
+# the t-statistic is the ratio of the departure of the estimated value of a parameter 
+# from its hypothesized value to its standard error. It is used in hypothesis testing 
+# via Student's t-test. The t-statistic is used in a t-test to determine if you should 
+# support or reject the null hypothesis
+test$statistic
+test$p.value
+test$conf.int[1]
+test$conf.int[2]
 
 # The p-value is slightly different from the Welch version. For example:
 t.test(x, y, var.equal = TRUE)
@@ -75,6 +112,7 @@ t.test(rich ~ graze, data = grass)
 t.test(rich ~ graze, data = grass, subset = graze %in% c("mow", "unmow"))
 
 # μ-test in R
+# Wilcoxon Rank Sum and Signed Rank Tests
 # When you have two samples to compare and your data is nonparametric, you can use the μ-test. 
 # This goes by various names and may be known as the Mann—Whitney μ-test or Wilcoxon sign rank test. 
 # The wilcox.test() command can carry out the analysis.
@@ -152,7 +190,10 @@ cor(count, speed)
 cor(count, speed, method = 'spearman')
 
 # Covariance
+?runif
+?rnorm
 x <- rnorm(30, sd=runif(30, 2, 50))
+
 mat <- matrix(x,10)
 V <- cov(mat)
 V
