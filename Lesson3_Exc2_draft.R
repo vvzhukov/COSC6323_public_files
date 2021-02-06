@@ -49,4 +49,7 @@ birthwt.t.test
 birthwt.t.test$p.value   # p-value
 # A large p-value (> 0.05) indicates weak evidence against the null hypothesis, so we fail to reject it
 
+birthwt.hype.diff <- round(birthwt.t.test$estimate[1] - birthwt.t.test$estimate[2], 1)
 
+# Confidence level as a %
+conf.level <- attr(birthwt.t.test$conf.int, "conf.level") * 100
