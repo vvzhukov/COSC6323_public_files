@@ -11,6 +11,8 @@
 library(dplyr)
 
 # simple case of filtering
+str(starwars)
+
 starwars %>% 
     filter(species == "Droid")
 
@@ -38,3 +40,20 @@ starwars %>%
         n > 1,
         mass > 50
     )
+
+
+# KS fitting
+x <- rnorm(50)
+y <- runif(30)
+
+?ks.test()
+
+# Do x and y come from the same distribution?
+ks.test(x, y)
+
+# If y is numeric, a two-sample test of the null hypothesis that x and y 
+# were drawn from the same continuous distribution is performed.
+
+# Does x come from a shifted gamma distribution with shape 3 and rate 2?
+ks.test(x+2, "pgamma", 3, 2) # two-sided, exact
+
