@@ -1,14 +1,25 @@
 # 03/11/2021
 # Vitalii Zhukov
 # COSC 6323
-# Ref.: https://www.tutorialspoint.com/r/r_linear_regression.htm
+# Ref.: 
+# 1. https://www.tutorialspoint.com/r/r_linear_regression.htm
+# 2. http://www.sthda.com/english/articles/39-regression-model
+# 3. Bruce, Peter, and Andrew Bruce. 2017. Practical Statistics for Data Scientists. O’Reilly Media.
+# 4. James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2014. An Introduction to Statistical Learning: With Applications in R. Springer Publishing Company, Incorporated.
+
+
+# PLAN:
+# EXAMPLE 1 (lm(), predict(), plot)
+# EXAMPLE 2 (train vs test, diagnostics)
+# EXTRA PROBLEM 1 (if we have time)
+# EXERCISE REVIEW
 
 # EXAMPLE 1
 
-# PREDICTOR
+# PREDICTOR (height)
 x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
 
-# RESPONCE
+# RESPONCE (weight)
 y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
 
 # Apply the lm() function.
@@ -20,12 +31,6 @@ print(summary(relation))
 
 
 # PREDICT FUNCTION
-
-# The predictor vector.
-x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
-
-# The resposne vector.
-y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
 
 # Apply the lm() function.
 relation <- lm(y~x)
@@ -48,6 +53,7 @@ plot(y,x,col = "blue",main = "Height & Weight Regression",
 
 library(tidyverse)
 library(caret)
+library(broom)
 
 # Load the data
 # predicting sales units on the basis of the amount of money 
@@ -57,7 +63,7 @@ data("marketing", package = "datarium")
 # Inspect the data
 sample_n(marketing, 3)
 
-
+# OPTIONAL
 # Split the data into training and test set
 set.seed(123)
 training.samples <- marketing$sales %>%
@@ -66,13 +72,163 @@ training.samples <- marketing$sales %>%
 train.data  <- marketing[training.samples, ]
 test.data <- marketing[-training.samples, ]
 
+
 # Build the model
-model <- lm(sales ~ youtube, data = train.data)
+model <- lm(sales ~ youtube, data = marketing)
 summary(model)$coef
 
 # Make predictions
 newdata <- data.frame(youtube = c(0,  1000))
 model %>% predict(newdata)
+
+model.diag.metrics <- augment(model)
+head(model.diag.metrics)
+
+# Among the table columns, there are:
+# youtube: the invested youtube advertising budget
+# sales: the observed sale values
+# .fitted: the fitted sale values
+# .resid: the residual errors
+
+# RESIDUALS PLOT
+ggplot(model.diag.metrics, aes(youtube, sales)) +
+    geom_point() +
+    stat_smooth(method = lm, se = FALSE) +
+    geom_segment(aes(xend = youtube, yend = .fitted), 
+                 color = "red", size = 0.3)
+
+# DIAGNOSTICS
+# Linear regression makes several assumptions about the data:
+
+# 1. Linearity of the data. 
+# The relationship between the predictor (x) and the outcome (y) 
+# is assumed to be linear.
+
+# 2. Normality of residuals. 
+# The residual errors are assumed to be normally distributed.
+
+# 3. Homogeneity of residuals variance. 
+# The residuals are assumed to have a constant variance 
+# (homoscedasticity)
+
+# 4. Independence of residuals error terms.
+
+# Potential problems include:
+# 1. Non-linearity of the outcome - predictor relationships
+# 2. Heteroscedasticity: Non-constant variance of error terms.
+# 3. Presence of influential values in the data that can be:
+#    Outliers: extreme values in the outcome (y) variable
+#    High-leverage points: extreme values in the predictors (x) variable
+
+par(mfrow = c(2, 2))
+plot(model)
+
+# 1. Residuals vs Fitted. 
+
+# 2. Normal Q-Q. 
+
+# 3. Scale-Location (or Spread-Location). 
+
+# 4. Residuals vs Leverage. 
+
+# Comments on the results
+# ...
+
+# Inspect the data
+head(model.diag.metrics, 4)
+
+# We will mainly use .fitted, .resid, .hat, .std.resid, .cooksd
+
+# LINEARITY
+# Now lets check the linearity assumption
+dev.off()
+plot(model,1)
+
+# RESULT
+# In our example, there is no pattern in the residual plot. 
+# This suggests that we can assume linear relationship between the 
+# predictors and the outcome variables.
+
+# HOMOGENEITY OF VARIANCE
+plot(model,3)
+
+# RESULT
+# It can be seen that the variability (variances) of the residual 
+# points increases with the value of the fitted outcome variable, 
+# suggesting non-constant variances in the residuals errors 
+# (or heteroscedasticity).
+
+# A possible solution to reduce the heteroscedasticity problem is to 
+# use a log or square root transformation of the outcome variable (y).
+
+model2 <- lm(log(sales) ~ youtube, data = marketing)
+plot(model2, 3)
+
+# NORMALITY OF RESIDUALS
+plot(model, 2)
+
+# RESULT
+# all the points fall approximately along this reference line, 
+# so we can assume normality
+
+# OUTLIERS AND LEVERAGE POINTS
+plot(model,5)
+
+# RESULT
+# The plot above highlights the top 3 most extreme points 
+# (#26, #36 and #179), with a standardized residuals below -2. 
+# However, there is no outliers that exceed 3 standard deviations, 
+# what is good.
+
+# Additionally, there is no high leverage point in the data. 
+# That is, all data points, have a leverage statistic below 
+# 2(p + 1)/n = 4/200 = 0.02.
+
+# INFLUENTIAL VALUES
+# Value, which inclusion or exclusion can alter the results of the 
+# regression analysis.
+
+# Cook’s distance to determine the influence of a value. 
+# This metric defines influence as a combination of leverage and 
+# residual size.
+
+par(mfrow = c(1, 2))
+# Cook's distance
+plot(model, 4)
+# Residuals vs Leverage
+plot(model, 5)
+
+# By default top 3 values are labelled.
+# We may change it:
+dev.off()
+plot(model, 4, id.n = 5)
+# We can easily accees data behind these observations
+model.diag.metrics %>%
+    top_n(3, wt = .cooksd)
+
+# RESULT
+# The data don’t present any influential points. 
+# Cook’s distance lines (a red dashed line) are not shown 
+# on the Residuals vs Leverage plot because all points are 
+# well inside of the Cook’s distance lines.
+
+# EXAMPLE with potential influence points;
+df2 <- data.frame(
+    x = c(marketing$youtube, 500, 600),
+    y = c(marketing$sales, 80, 100)
+)
+model2 <- lm(y ~ x, df2)
+
+par(mfrow = c(1, 2))
+# Cook's distance
+plot(model2, 4)
+# Residuals vs Leverage
+plot(model2, 5)
+
+# RESULT
+# When the points are outside of the Cook’s distance, this means that 
+# they have high Cook’s distance scores. In this case, the values are 
+# influential to the regression results.
 
 
 # PROBLEM 1
@@ -116,8 +272,6 @@ predict(eruption.lm, newdata, interval="confidence")
 # The 95% confidence interval of the mean eruption duration for the 
 # waiting time of 80 minutes is between 4.1048 and 4.2476 minutes.
 
-
-# PROBLEM 2
 # Obtain the residual plot for the faithful dataset against the independent 
 # variable waiting.
 eruption.res = resid(eruption.lm)
