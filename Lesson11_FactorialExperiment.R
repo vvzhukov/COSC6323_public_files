@@ -2,9 +2,8 @@
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
-# 1. http://www.r-tutor.com/elementary-statistics/analysis-variance/factorial-design
-# 2. http://www.lithoguru.com/scientist/statistics/course.html
-# 3. https://towardsdatascience.com/design-of-experiments-with-r-e54167fac490
+# 1. http://www.lithoguru.com/scientist/statistics/course.html
+# 2. https://towardsdatascience.com/design-of-experiments-with-r-e54167fac490
 
 # PLAN
 # EXAMPLE 1
@@ -34,7 +33,8 @@ library(AlgDesign)
 # As an example, we'll create full factorial design with three factors (F1, F2, F3) and
 # with 3, 2, and 3 levels, respectively
 gen.factorial(levels = c(3,2,3), nVars = 3, center=TRUE, varNames=c("F1", "F2", "F3"))
-# When center = TRUE, the design is symmetric and the three levels will be signified by -1, 0, and 1
+# When center = TRUE, the design is symmetric and the three levels will be 
+# signified by -1, 0, and 1
 
 # The common 2^k design (two levels for each factor):
 gen.factorial(levels = 2, nVars = 3, varNames=c("F1", "F2", "F3"))
@@ -45,7 +45,8 @@ gen.factorial(levels = 2, nVars = 3, varNames=c("F1", "F2", "F3"))
 # Statistics for Experimenters, John Wiley & Sons (1978).
 yield <- read.csv('FactorialDesign.csv')[-1]
 
-# Note that this is a two-level, three factor, full factorial design with Yield as the response (no replicates)
+# Note that this is a two-level, three factor, full factorial design with Yield as 
+# the response (no replicates)
 
 # There are data for two catalysts (0, 1); let's convert it into a factor
 yield$Catalyst = factor(yield$Catalyst)
@@ -147,7 +148,8 @@ summary(aov4.out)
 plot(aov4.out, 1)           # residuals versus fitted values
 plot(aov4.out, 2)           # QQ plot
 
-# This provides all of the means commonly calculated in ANOVA analysis (review all combinations)
+# This provides all of the means commonly calculated in ANOVA analysis 
+# (review all combinations)
 model.tables(aov2.out, type="means", se=T)
 
 
@@ -278,10 +280,11 @@ df3
 # EXAMPEL 3 Book example review
 # Polynomial model
 # "curve fitting". 
-# That is, the interest is in the nature of the fitted response curve rather than in the partial regression coefficients.  
+# That is, the interest is in the nature of the fitted response curve rather than in 
+# the partial regression coefficients.  
 
-# This example concerns the growth of rabbit jawbones. Measurements were made on lengths of 
-# jawbones for rabbits of various ages.
+# This example concerns the growth of rabbit jawbones. Measurements were made on lengths 
+# of jawbones for rabbits of various ages.
 data_e3 <- data.frame('AGE' = c(0.01,0.2, 0.2, 0.21, 0.23, 0.24, 0.24, 0.25, 0.26, 0.34, 0.41,
                              0.83, 1.09, 1.17, 1.39, 1.53, 1.74, 2.01, 2.12, 2.29, 2.52, 
                              2.61, 2.64, 2.87, 3.39, 3.41, 3.52, 3.65),
