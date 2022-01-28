@@ -147,7 +147,7 @@ plot(ecdf(mtcars$mpg), main = "CDF of mpg")
 ## Now if we have time
 ## CENTRAL LIMIT THEOREM EXAMPLE
 # https://www.analyticsvidhya.com/blog/2019/05/statistics-101-introduction-central-limit-theorem/
-data<-read.csv("/Users/apple/Desktop/6323_TA/R_scripts/Clt-data.csv")
+data<-read.csv("/Users/apple/Desktop/6323_TA/Git_code/Clt-data.csv")
 dim(data)
 head(data,3)
 
