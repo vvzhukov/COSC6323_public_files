@@ -130,7 +130,21 @@ plot(x,y)
 ## CHI-SQUARED
 ?dchisq()
 
+## Probability Density Function (PDF) and 
+## Cumulative Distribution Function (CDF)
+mtcars$mpg
 
+# PDF
+?density()
+density(mtcars$mpg)
+plot(density(mtcars$mpg), main = "PDF of mpg")
+
+# CDF
+?ecdf()
+ecdf(mtcars$mpg)
+plot(ecdf(mtcars$mpg), main = "CDF of mpg")
+
+## Now if we have time
 ## CENTRAL LIMIT THEOREM EXAMPLE
 # https://www.analyticsvidhya.com/blog/2019/05/statistics-101-introduction-central-limit-theorem/
 data<-read.csv("/Users/apple/Desktop/6323_TA/R_scripts/Clt-data.csv")
