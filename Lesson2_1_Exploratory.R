@@ -132,22 +132,25 @@ plot(x,y)
 
 ## Probability Density Function (PDF) and 
 ## Cumulative Distribution Function (CDF)
-mtcars$mpg
+mtcars
+upd_mtcars <- mtcars[,c(2,4)]
+upd_mtcars$score <- ifelse(upd_mtcars$hp<70, 1,
+                           ifelse(upd_mtcars$hp<100,2,3))
 
 # PDF
 ?density()
-density(mtcars$mpg)
-plot(density(mtcars$mpg), main = "PDF of mpg")
+density(upd_mtcars$score)
+plot(density(upd_mtcars$score), main = "PDF of score")
 
 # CDF
 ?ecdf()
-ecdf(mtcars$mpg)
-plot(ecdf(mtcars$mpg), main = "CDF of mpg")
+ecdf(upd_mtcars$score)
+plot(ecdf(upd_mtcars$score), main = "CDF of mpg")
 
 ## Now if we have time
 ## CENTRAL LIMIT THEOREM EXAMPLE
 # https://www.analyticsvidhya.com/blog/2019/05/statistics-101-introduction-central-limit-theorem/
-data<-read.csv("/Users/apple/Desktop/6323_TA/R_scripts/Clt-data.csv")
+data<-read.csv("/Users/apple/Desktop/6323_TA/Git_code/Clt-data.csv")
 dim(data)
 head(data,3)
 
