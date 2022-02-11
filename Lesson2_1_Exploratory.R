@@ -30,15 +30,16 @@ mode(x)
 # We can create custom function in order to show the value with
 # the highest occurrence
 ?unique
-?tablulate
-?which.max()
+??tablulate
+?which.max
+?match
 
 math.mode <- function (x) {
     uniqv <- unique(x)
     uniqv[which.max(tabulate(match(x, uniqv)))]
 }
 
-x <- c(1,2,3,41,1,12,3,-23,12,1,1)
+x <- c(1,2,2,2,2,2,2,2,3,41,1,12,3,-23,12,1,1)
 math.mode(x)
 # Lets check the result
 ?table
@@ -60,6 +61,7 @@ quantile(x)
 
 # SAMPLE
 ?sample()
+set.seed(12)
 sample(c(1:10),3)
 
 # QUICK REVIEW
@@ -70,6 +72,7 @@ str(diamonds)
 summary(diamonds)
 
 diamonds$price
+diamonds$color
 
 mean(diamonds$price)
 median(diamonds$price)
@@ -89,7 +92,7 @@ math.mode(diamonds$price)
 
 # Create a sequence of numbers between -10 and 10 incrementing by 0.1.
 x <- seq(-10, 10, by = .1)
-# Choose the mean as 2.5 and standard deviation as 0.5.
+# Choose the mean as 2.5 and standard deviation as 1.5.
 y <- dnorm(x, mean = 2.5, sd = 1.5)
 # Give the chart file a name.
 plot(x,y)
@@ -133,7 +136,10 @@ plot(x,y)
 ## Probability Density Function (PDF) and 
 ## Cumulative Distribution Function (CDF)
 mtcars
+str(mtcars)
+
 upd_mtcars <- mtcars[,c(2,4)]
+upd_mtcars$score <- 0
 upd_mtcars$score <- ifelse(upd_mtcars$hp<70, 1,
                            ifelse(upd_mtcars$hp<100,2,3))
 
@@ -145,7 +151,7 @@ plot(density(upd_mtcars$score), main = "PDF of score")
 # CDF
 ?ecdf()
 ecdf(upd_mtcars$score)
-plot(ecdf(upd_mtcars$score), main = "CDF of mpg")
+plot(ecdf(upd_mtcars$score), main = "CDF of score")
 
 ## Now if we have time
 ## CENTRAL LIMIT THEOREM EXAMPLE
