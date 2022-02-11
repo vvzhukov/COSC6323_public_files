@@ -1,4 +1,4 @@
-# 02/04/2021
+# Created 02/04/2021
 # Vitalii Zhukov
 # COSC 6323
 # Sources
@@ -6,13 +6,14 @@
 # https://statistics.berkeley.edu/computing/r-t-tests
 
 # Plan:
-# 1. Repeat theory
+# 1. Theory
 # 2. Student's t-Test
-# 3. Wilcoxon Rank Sum and Signed Rank Tests
-# 4. Correlation, Variance and Covariance
-# 5. Pearson's Chi-squared Test for Count Data
-# 6. Exercise review
-# 7. Gephi links (check BB)
+# 3. N number
+# 4. Wilcoxon Rank Sum and Signed Rank Tests
+# 5. Correlation, Variance and Covariance
+# 6. Pearson's Chi-squared Test for Count Data
+# 7. Exercise review
+# 8. Gephi links (check BB)
 
 # Null hypothesis 
 # Alternate hypothesis
@@ -59,6 +60,22 @@
 
 # subset = predictor %in% c(“sample.1”, sample.2”) – If the data is in the form response ~ predictor, 
 # the two samples to be selected from the predictor should be specified by the subset instruction from the column of the data.
+
+# Example
+?sleep
+plot(extra ~ group, data = sleep)
+t.test(extra ~ group, data=sleep)
+
+# Answer (SPOILER)
+#
+#
+#
+# Based on the result, you can say: at 95% confidence 
+# level, there is no significant difference 
+# (p-value = 0.0794) of the two means. 
+# Accept the null
+
+
 
 # Two-Sample T-test with Unequal Variance
 ?set.seed()
@@ -110,6 +127,31 @@ t.test(rich ~ graze, data = grass)
 
 # Subsetting in t.test:
 t.test(rich ~ graze, data = grass, subset = graze %in% c("mow", "unmow"))
+
+
+# SAMPLE SIZE
+# Get n number
+
+# Too small of a sample size can under detect the effect 
+# of interest in your experiment
+
+# Too large of a sample size may lead to unnecessary 
+# wasting of resources
+?pwr.t.test
+# d - Effect size
+# magnitude of the effect under the alternative hypothesis.
+# The larger the effect size, the easier it is to detect an 
+# effect and require fewer samples.
+
+# sig.level - Significance level (Type I error)
+# power - Power of test (1 - Type II error)
+# type - type of t test (one-, two- or paired-samples)
+pwr.t.test(d=0.3,power=0.75,
+           sig.level=0.05,
+           type="two.sample",
+           alternative="greater")
+# Numbers from exercise 2.10 p. 59 Cohen (1988)
+
 
 # μ-test in R
 # Wilcoxon Rank Sum and Signed Rank Tests
@@ -195,12 +237,12 @@ cor(count, speed, method = 'spearman')
 x <- rnorm(30, sd=runif(30, 2, 50))
 
 mat <- matrix(x,10)
+?cov
 V <- cov(mat)
 V
 
 # The cov2cor() command determines the correlation from a matrix of covariance, as shown 
 # in the following command:
-
 cov2cor(V)
 
 data(women)
@@ -209,5 +251,6 @@ cor.test(women$height, women$weight)
 
 # attach() / with() syntax
 data(cars)
+?cor.test
 cor.test(~ speed + dist, data = cars, method = 'spearman', exact = F)
 
