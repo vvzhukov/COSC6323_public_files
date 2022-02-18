@@ -23,7 +23,7 @@ library(ggplot2)
 # ggplot() Begins a plot that you finish by adding layers to.
 # ggsave("name.png", width = x, height = y) Saves last plot as x' x y' file "name.png" in current wd.
 
-
+?diamonds
 ggplot(diamonds)  # only the dataset 
 ggplot(diamonds, aes(x=carat))  # X-axis
 ggplot(diamonds, aes(x=carat, y=price))
@@ -59,6 +59,7 @@ a + geom_path(lineend="butt", linejoin="round", linemitre=1)
 # ONE VARIABLE continuous
 ?mpg
 c <- ggplot(mpg, aes(hwy))
+c
 c2 <- ggplot(mpg)
 
 ?geom_density()
@@ -74,7 +75,7 @@ c + geom_histogram(binwidth = 5)
 
 # ONE VARIABLE discrete
 d <- ggplot(mpg, aes(fl))
-
+?mpg
 ?geom_bar()
 # Ex. Bar chart for highway miles per gallon
 d + geom_bar()

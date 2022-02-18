@@ -16,7 +16,7 @@
 # 8. Gephi links (check BB)
 
 # Null hypothesis 
-# Alternate hypothesis
+# Alternative hypothesis
 
 # A small p-value (typically ≤ 0.05) ?
 # A large p-value (> 0.05) ?
@@ -30,6 +30,7 @@
 # Type II Error – Accepting a false null hypothesis H0 is referred to as the Type II error. 
 # The term power of the test is used to express the probability of Type II error while testing 
 # hypothesis. The power of the test is represented by the symbol β (beta).
+
 
 # Student's T-test
 
@@ -87,6 +88,7 @@ x = rnorm(10)
 y = rnorm(10)
 test <- t.test(x,y)
 test
+names(test)
 # What does that mean?
 # p < 0.05 => strong evidence against the null hypothesis, so you reject it
 
@@ -100,7 +102,7 @@ round(test$estimate[1] - test$estimate[2], 3)
 # via Student's t-test. The t-statistic is used in a t-test to determine if you should 
 # support or reject the null hypothesis
 test$statistic
-test$p.value
+round(test$p.value, 3)
 test$conf.int[1]
 test$conf.int[2]
 
