@@ -5,7 +5,7 @@
 
 # Based on:
 # https://www.r-bloggers.com/2015/07/hypothesis-testing-on-normally-distributed-data-in-r/
-
+# https://blog.minitab.com/en/understanding-statistics/what-can-you-say-when-your-p-value-is-greater-than-005
 # Plan:
 # 
 # 1. HYPOTHESIS TEST ON Mean (custom function, example, exercise)
@@ -23,6 +23,8 @@
 # Remember that:
 # 1.Low pvalue: strong empirical evidence against h0
 # 2.High pvalue: little or 'no' empirical evidence against h0
+
+
 
 # Should Texas DMV invest money in the highway safety driving research
 # project based on the speed observed in the left lane of the highway.
@@ -122,7 +124,9 @@ t.test(data_vector, mu = 73, alternative = "two.sided")
 # In the mtcars data is there a significant evidence that cars with 
 # 3 forward gears has less than 18 miles per gallon fuel consumption? 
 data(mtcars)
-
+mtcars$gear
+# Post p value and conclusion to the chat. The first one to do it before 
+# 6 pm will get bonus point. At 6 pm we will solve it together.
 
 # HYPOTHESIS TEST ON Variance (SIGMA^2)
 
