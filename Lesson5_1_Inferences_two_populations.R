@@ -9,12 +9,16 @@
 # https://stat-methods.com/home/paired-samples-t-test-r/
 
 # Plan:
-# 1. Inferences for two populations: t.test 
-#   (1 problem review, 1 exercise)
+# 1. Inferences for two populations: Pooled t.test 
+#   TASK 1
+#   EXERCISE    
 # 2. Paired t-test 
-#   (2 problems review, workflow, 1 exercise)
+#   TASK 2
+#   TASK 3
+#   WORKFLOW
+#   EXERCISE
 
-# 1.1 TASK 1 (mean)
+# 1. TASK 1
 # Assuming that the data in mtcars follows the normal 
 # distribution, determine if there is significant 
 # difference between the mean gas mileage of 4 cyl 
@@ -25,7 +29,7 @@ mtcars4 <- mtcars %>% filter(cyl == 4)
 mtcars8 <- mtcars %>% filter(cyl == 8)
 
 t.test(mtcars4$mpg, mtcars8$mpg)
-
+?t.test
 # Results
 # 1. In mtcars, the mean mileage of 4 cyl is 26.66364 mpg 
 # and the 8 cyl is 15.1 mpg.
@@ -44,12 +48,15 @@ mtcars_cyl_4_8 <- mtcars %>% filter(cyl %in% c(4,8))
 t.test(mpg ~ cyl, data = mtcars_cyl_4_8)
 
 
-# EXERCISE
+# 2. EXERCISE
 # Determine if cars with the weight > 3000 lbs have more horse 
 # powers comparing to the cars with the weight < 3000.
+# Will solve it together at 5:50
 
+t.test(subset(mtcars, wt > 3)$hp,
+subset(mtcars, wt < 3)$hp, alternative = "greater")
 
-# 2. TASK 2 (Paired, MEAN + check for normality)
+# 3. TASK 2 (Paired, MEAN + check for normality)
 # Assuming that we have two groups of mice: before and 
 # after treatment. 
 # Is there any significant difference in the mean 
@@ -82,7 +89,7 @@ group_by(my_data, group) %>%
 
 
 # Visualize
-
+library(ggplot2)
 ggplot(my_data, aes(x=group, y=weight)) +
     geom_boxplot() +
     ggtitle(paste("Mices: before and after experiment, n =",
@@ -127,6 +134,8 @@ res
 # different from the average weight after treatment 
 # with a p-value = 6.210^{-9}.
 
+
+# 4. TASK 3
 # Paired t-test, Flicker feather example
 # Yellowness index for Typical and Odd birds.
 Input = ("
@@ -177,22 +186,33 @@ shapiro.test(Difference)
 # Null hypothesis: the data are normally distributed
 # Alternative hypothesis: data not normally distributed
 
-
 t.test(Data$Typical, 
        Data$Odd, 
        paired=TRUE, 
        conf.level=0.95)
 
-# Common workflow:
-
+# 5. COMMON WORKFLOW:
 #1. Produce descriptive statistics by group
 #2. Perform the Shapiro-Wilk Test for Normality on each group
 #3. Perform a hist/QQ plot of the differences
 #4. Produce boxplots and visually check for outliers
 #5. Perform an Independent Samples T-test
 
-# Exercise
+
+# 6. EXERCISE
 # Is there is a significant difference in the mean 
 # scores between a pre-test and a post-test for 20 students
-# Check for normality and psot the results.
-read.csv("lesson5.csv")
+# Check for normality and plot the results.
+# https://github.com/vvzhukov/COSC6323_public_files/blob/main/lesson5.csv
+exc6_data <- read.csv("lesson5.csv")
+exc6_diff <- subset(exc6_data, group == "pre")$score - 
+    subset(exc6_data, group == "post")$score
+shapiro.test(exc6_diff)
+t.test(subset(exc6_data, group == "pre")$score,
+       subset(exc6_data, group == "post")$score, paired = TRUE)
+# The answer should include:
+# 1. For normality test: stats, p-value, 
+# 2. For t.test: test stats, df, p-value
+# 3. Your conclusion
+
+# Will solve it together at 6:25
