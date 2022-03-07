@@ -1,15 +1,16 @@
-# 03/04/2021
+# Created: 03/04/2021
+# Updated: 03/04/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: http://www.sthda.com/english/wiki/one-way-anova-test-in-r
 
 # Plan:
-# 1. Understanding ANOVA
-# 2. ANOVA practice task x2
-
+# 1. Understanding ANOVA [1 bonus point]
+#       anova, TukeyHSD, General Linear Hypotheses, Pairwise t tests,
+#       assumptions test, Kruskal-Wallis rank sum test
+# 2. ANOVA practice tasks [2x2 bonus points]
 # 3. Homogeneous variances test
 # 4. Tukey's procedure
-# 5. Exercise review
 
 # ----------------------------------------------------------------------------------
 # Understanding ANOVA
@@ -50,6 +51,7 @@ ggboxplot(my_data, x = "group", y = "weight",
           color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
           order = c("ctrl", "trt1", "trt2"),
           ylab = "Weight", xlab = "Treatment")
+# Easy bonus point: what is wrong with this plot?
 
 # Mean plots
 # ++++++++++++++++++++
@@ -62,6 +64,7 @@ ggline(my_data, x = "group", y = "weight",
        ylab = "Weight", xlab = "Treatment")
 
 # Compute the analysis of variance
+?aov
 res.aov <- aov(weight ~ group, data = my_data)
 
 # Summary of the analysis
@@ -94,13 +97,15 @@ TukeyHSD(res.aov)
 # procedures for an ANOVA.
 # glht = general linear hypothesis tests
 # install.packages("multcomp")
+
 library(multcomp)
+?glht()
 summary(glht(res.aov, linfct = mcp(group = "Tukey")))
 
 # ALTERNATIVE 2
 # The function pairewise.t.test() can be also used to calculate pairwise 
 # comparisons between group levels with corrections for multiple testing.
-
+?pairwise.t.test
 pairwise.t.test(my_data$weight, my_data$group,
                 p.adjust.method = "BH")
 
@@ -143,7 +148,7 @@ plot(res.aov, 2)
 
 # Shapiro-Wilk test
 # Extract the residuals
-aov_residuals <- residuals(object = res.aov )
+aov_residuals <- residuals(object = res.aov)
 # Run Shapiro-Wilk test
 shapiro.test(x = aov_residuals )
 
@@ -168,15 +173,24 @@ kruskal.test(weight ~ group, data = my_data)
 
 setwd('/Users/apple/Desktop/6323_TA/R_scripts/dataset_lesson6')
 riceData <- read.csv("RiceYield.csv")
+# we are going to solve it together at 6:28
+# First two correct answers will get bonus points.
+# Post to the text chat: 1) F value 2) P value 3) Df 4) Your conclusion
+
+# Winners: DAVE, JAHANVI HITESH, Patil, Srinidhi
 
 # ----------------------------------------------------------------------------------
 # ANOVA, task 2
 # ----------------------------------------------------------------------------------
 
-# Use the Housing Dataset provided in HousingData.csv. Is there a difference 
-# in the housing prices based on the zip code?
+# Use the Housing Dataset provided in HousingData.csv. 
+# Is there a difference  in the housing prices based on the zip code?
 
 HousingData <- read.csv("HousingData.csv")
-
+# Post to the text chat: 1) F value 2) P value 
+# 3) Df 4) Your conclusion
+# Check assumptions. *Maybe transform the data
+# 6:46 solve together
+# 2 bonus points
 
 
