@@ -1,4 +1,5 @@
-# 03/11/2021
+# Created: 03/11/2021
+# Modified: 03/11/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -10,7 +11,7 @@
 
 # PLAN:
 # EXAMPLE 1 (lm(), predict(), plot)
-# EXAMPLE 2 (train vs test, diagnostics)
+# EXAMPLE 2 (train vs test, diagnostics) [3 BONUS Points]
 # EXTRA PROBLEM 1 (if we have time)
 # EXERCISE REVIEW
 
@@ -81,6 +82,7 @@ summary(model)$coef
 newdata <- data.frame(youtube = c(0,  1000))
 model %>% predict(newdata)
 
+?augment
 model.diag.metrics <- augment(model)
 head(model.diag.metrics)
 
@@ -124,15 +126,24 @@ par(mfrow = c(2, 2))
 plot(model)
 
 # 1. Residuals vs Fitted. 
+# Used to check the linear relationship assumptions. 
+# A horizontal line, without distinct patterns is an indication 
+# for a linear relationship, what is good.
 
 # 2. Normal Q-Q. 
+# Used to examine whether the residuals are normally distributed. 
+# It’s good if residuals points follow the straight dashed line.
 
 # 3. Scale-Location (or Spread-Location). 
+# Used to check the homogeneity of variance of the residuals 
+# (homoscedasticity). Horizontal line with equally spread points is 
+# a good indication of homoscedasticity. This is not the case in 
+# our example, where we have a heteroscedasticity problem.
 
 # 4. Residuals vs Leverage. 
-
-# Comments on the results
-# ...
+# Used to identify influential cases, that is extreme values that 
+# might influence the regression results when included or excluded 
+# from the analysis. 
 
 # Inspect the data
 head(model.diag.metrics, 4)
@@ -145,21 +156,15 @@ dev.off()
 plot(model,1)
 
 # RESULT
-# In our example, there is no pattern in the residual plot. 
-# This suggests that we can assume linear relationship between the 
-# predictors and the outcome variables.
+# (1) Comment for [BONUS POINT]
+# ... (check solutions)
 
 # HOMOGENEITY OF VARIANCE
 plot(model,3)
 
 # RESULT
-# It can be seen that the variability (variances) of the residual 
-# points increases with the value of the fitted outcome variable, 
-# suggesting non-constant variances in the residuals errors 
-# (or heteroscedasticity).
-
-# A possible solution to reduce the heteroscedasticity problem is to 
-# use a log or square root transformation of the outcome variable (y).
+# (2) Comment for [BONUS POINT]
+# ... (check solutions)
 
 model2 <- lm(log(sales) ~ youtube, data = marketing)
 plot(model2, 3)
@@ -168,8 +173,9 @@ plot(model2, 3)
 plot(model, 2)
 
 # RESULT
-# all the points fall approximately along this reference line, 
-# so we can assume normality
+# (3) Comment for [BONUS POINT]
+# ... (check solutions)
+
 
 # OUTLIERS AND LEVERAGE POINTS
 plot(model,5)
