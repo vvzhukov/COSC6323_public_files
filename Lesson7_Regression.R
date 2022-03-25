@@ -13,7 +13,6 @@
 # EXAMPLE 1 (lm(), predict(), plot)
 # EXAMPLE 2 (train vs test, diagnostics) [3 BONUS Points]
 # EXTRA PROBLEM 1 (if we have time)
-# EXERCISE REVIEW
 
 # EXAMPLE 1
 
@@ -24,6 +23,7 @@ x <- c(151, 174, 138, 186, 128, 136, 179, 163, 152, 131)
 y <- c(63, 81, 56, 91, 47, 57, 76, 72, 62, 48)
 
 # Apply the lm() function.
+?lm()
 relation <- lm(y~x)
 
 print(relation)
@@ -40,6 +40,7 @@ relation <- lm(y~x)
 a <- data.frame(x = 170)
 result <-  predict(relation,a)
 print(result)
+
 
 # VISUALIZATION
 
@@ -60,7 +61,7 @@ library(broom)
 # predicting sales units on the basis of the amount of money 
 # spent in the three advertising medias
 data("marketing", package = "datarium")
-
+??marketing
 # Inspect the data
 sample_n(marketing, 3)
 
@@ -154,17 +155,15 @@ head(model.diag.metrics, 4)
 # Now lets check the linearity assumption
 dev.off()
 plot(model,1)
+# Limbani +2
 
-# RESULT
-# (1) Comment for [BONUS POINT]
-# ... (check solutions)
 
 # HOMOGENEITY OF VARIANCE
 plot(model,3)
 
 # RESULT
 # (2) Comment for [BONUS POINT]
-# ... (check solutions)
+
 
 model2 <- lm(log(sales) ~ youtube, data = marketing)
 plot(model2, 3)
@@ -222,7 +221,7 @@ model.diag.metrics %>%
 df2 <- data.frame(
     x = c(marketing$youtube, 500, 600),
     y = c(marketing$sales, 80, 100)
-)
+) # Bonus point goes to: Sadat Shahriar and Biswas, Dipayan
 model2 <- lm(y ~ x, df2)
 
 par(mfrow = c(1, 2))
@@ -240,12 +239,13 @@ plot(model2, 5)
 # PROBLEM 1
 # In the data set faithful, develop a 95% prediction interval of the 
 # eruption duration for the waiting time of 80 minutes.
-# Determine the r2 value.
+# Determine the r^2 value.
 # Determine if there is a significant relationship between the 
 # variables.
 
 attach(faithful)     # attach the data frame
 # linear regression model
+?faithful
 
 eruption.lm = lm(eruptions ~ waiting, data=faithful)
 summary(eruption.lm)
@@ -281,10 +281,10 @@ predict(eruption.lm, newdata, interval="confidence")
 # Obtain the residual plot for the faithful dataset against the independent 
 # variable waiting.
 eruption.res = resid(eruption.lm)
-
+dev.off()
 plot(faithful$waiting, eruption.res,
      ylab="Residuals",
      xlab="Waiting Time",
      main="Old Faithful Eruptions")
 
-abline(0, 0)
+abline(0, 0, col='red')
