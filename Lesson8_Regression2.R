@@ -1,6 +1,8 @@
-# 03/25/2021
+# Created 03/25/2021
+# Updated 03/25/2022
 # Vitalii Zhukov
 # COSC 6323
+
 # Ref.: 
 # https://www.tutorialspoint.com/r/r_multiple_regression.htm
 # https://ww2.coastal.edu/kingw/statistics/R-tutorials/multregr_interact.html
@@ -10,103 +12,42 @@
 # https://www.statmethods.net/stats/regressi
 # http://statweb.stanford.edu/~jtaylo/courses/stats203/notes/diagnostics.pdf
 # http://www.sthda.com/english/articles/38-regression-model-validation/158-regression-model-accuracy-metrics-r-square-aic-bic-cp-and-more/
+# http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/154-stepwise-regression-essentials-in-r/
+# https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html
+# https://quantifyinghealth.com/stepwise-selection/
 
 # PLAN
-# 0. Fig 3A hints
-# 1. Sankey diagram (basic diagram, color for nodes, color for connections)
-# 2. Multiple regression (mtcars)
-# 3. Generalized pairs plot (prestige) // ggPredict()
-# 4. Exercise review
-# 5. Extra
 
-# 0. Fig3A hints
-
-# paper1: CIP1: 1, CIP2: 4, SA1: 10, SA2: 10
-# paper2: CIP1: 3, CIP2: 0, SA1: 20, SA2: 0
-
-# CIP1: SA1 = 1*10 + 3*20 / 1*10 + 1*10 + 3*20
-# CIP1: SA2 = 1*10 / 1*10 + 1*10 + 3*20
-# CIP2: SA1 = 4*10 / 4*10 + 4*10
-# CIP2: SA2 = 4*10 / 4*10 + 4*10
-
-# 1. Sankey diagram
-
-# Library
-library(networkD3)
-library(dplyr)
-
-# Make a connection data frame
-links <- data.frame(
-    source=c("group_A","group_A", "group_B", "group_C", "group_C", "group_E"), 
-    target=c("group_C","group_D", "group_E", "group_F", "group_G", "group_H"), 
-    value=c(2,3, 2, 3, 1, 3)
-)
-
-# From these flows we need to create a node data frame
-# it lists every entities involved in the flow
-nodes <- data.frame(
-    name=c(as.character(links$source), as.character(links$target)) %>% 
-        unique()
-)
-
-# With networkD3, connection must be provided using id, not using 
-# real name like in the links dataframe. So we need to reformat it.
-links$IDsource <- match(links$source, nodes$name)-1 
-links$IDtarget <- match(links$target, nodes$name)-1
-
-# prepare color scale: One specific color for each node.
-my_color <- 'd3.scaleOrdinal() .domain(["group_A", "group_B","group_C", "group_D", "group_E", "group_F", "group_G", "group_H"]) .range(["blue", "blue" , "blue", "red", "red", "yellow", "purple", "purple"])'
-
-# Make the Network. Color scale with the colorScale argument
-sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
-                   Value = "value", NodeID = "name", colourScale=my_color, fontSize= 14)
-
-# Set color for groups of nodes
-
-# Add a 'group' column to the nodes data frame:
-nodes$group <- as.factor(c("a","a","a","a","a","b","b","b"))
-
-# Give a color for each group:
-grp_color <- 'd3.scaleOrdinal() .domain(["a", "b"]) .range(["#69b3a2", "steelblue"])'
-
-# Make the Network
-sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
-                   Value = "value", NodeID = "name", 
-                   colourScale=grp_color, NodeGroup="group", fontSize= 14)
-
-# Set color of connections
-# Add a 'group' column to each connection:
-links$group <- as.factor(c("type_a","type_a","type_a","type_b","type_b","type_b"))
-
-# Add a 'group' column to each node. Here I decide to put all of them in the same group to make them grey
-nodes$group <- as.factor(c("my_unique_group"))
-
-# Give a color for each group:
-my_color <- 'd3.scaleOrdinal() .domain(["type_a", "type_b", "my_unique_group"]) .range(["#69b3a2", "steelblue", "grey"])'
-
-# Make the Network
-sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
-                   Value = "value", NodeID = "name", 
-                   colourScale=my_color, LinkGroup="group", NodeGroup="group")
+# 1. Multiple regression (mtcars)
+# 2. Variables selection (criterion & all combinations)
+# 3. Variables selection (forward, backward, stepwise)
 
 
-# 2. Mtcars multiple regression
 
-# Establish the relationship between "mpg" as a response variable with 
-# "disp","hp" and "wt" as predictor variables
+# 1. Mtcars multiple regression
+
+# Establish the relationship between "mpg" as a response variable 
+# with "disp","hp" and "wt" as predictor variables
 
 input <- mtcars[,c("mpg","disp","hp","wt")]
 print(head(input))
 
 # Create Relationship Model & get the Coefficients
 model <- lm(mpg~disp+hp+wt, data = input)
-model55 <- lm(mpg~wt, data = input)
+model2 <- lm(mpg~wt, data = input)
 # Show the model.
-summary(model55)
+summary(model2)
 summary(model)
-AIC(model)
-BIC(model)
 
+?AIC
+?BIC
+# Smaller AIC or BIC => better the fit
+AIC(model)
+AIC(model2)
+BIC(model)
+BIC(model2)
+
+# Another way to get coefficients
 print(model)
 
 # Get the Intercept and coefficients as vector elements.
@@ -117,11 +58,12 @@ Xdisp <- coef(model)[2]
 Xhp <- coef(model)[3]
 Xwt <- coef(model)[4]
 
-# For a car with disp = 221, hp = 102 and wt = 2.91 the predicted mileage is
+# For a car with disp = 221, hp = 102 and wt = 2.91 the 
+# predicted mileage is
 x1 <- 221
 x2 <- 102
 x3 <- 2.91
-Y = Interc + Xdisp*x1 + Xhp*x2 + Xwt*x3
+Interc + Xdisp*x1 + Xhp*x2 + Xwt*x3
 
 # Matrix scatterplot:
 plot(input, pch=16, col="blue",
@@ -141,77 +83,120 @@ plot(model)
 # Assumptions about the errors can be wrong.
 # - Errors not normally distributed (check QQ)
 # - Variance may not be constant. (sometimes transformations help)
-# - Errors may not be independent. This can seriously affect the t, F stats.
+# - Errors may not be independent. This can affect the t, F stats.
 
 # Outliers & Influential observations: both in predictors and observations
 # - some residuals may be much longer than others => evidence of an outlier 
 # - we may change influence by dropping each observation and check the model
 
 
-# 3. Generalized pairs plot (prestige)
 
-library(car)
-head(Prestige)
+# 2. Variables selection (criterion & all combinations)
 
-# Plot first four numeric variables
-plot(Prestige[,c(1:4)], pch=16, col="blue", main="Matrix Scatterplot
-of Income, Education, Women and Prestige")
+## Criterion
 
-# GGPAIRS
-#install.packages("GGally")
-library(GGally)
-ggpairs(Prestige, aes(col = type, alpha=0.4))
+##  (largest) R^2: Goodness of fit
+##  (lowest) AIC: Akaike Information Criteria 
+##  (lowest) SBIC: Sawa's Bayesian Information Criteria 
+##  (lowest) SBC: Schwarz Bayesian Criteria 
+##  (lowest) MSEP: Estimated error of prediction, assuming multivariate normality 
+##  (lowest) FPE: Final Prediction Error 
+##  (lowest) HSP: Hocking's Sp (adjustment of the residual sum of Squares)
+##  (lowest) APC: Amemiya Prediction Criteria
 
-# The matrix plot helps us to vizualize the relationship among 
-# all variables in one single image.
+# All possible subsets of the set of potential variables
+# If we have K independent variables => 2^K distinct subsets
 
-# GGPREDICT
-require(ggiraph)
-require(ggiraphExtra)
-require(plyr)
+library(olsrr)
+model3 <- lm(mpg ~ disp + hp + wt + qsec, data = mtcars)
+k <- ols_step_all_possible(model3)
+k
+plot(k) # goes to quartz
 
-input <- mtcars[,c("mpg","disp","hp","wt")]
-model2 <- lm(mpg~hp+wt, data = input)
-summary(model2)
-ggPredict(model2,se=TRUE,interactive=TRUE)
+# Select the subset of predictors that do the best at meeting 
+# some criterion, such as having the largest R2 value or 
+# the smallest MSE, Mallow’s Cp or AIC.
 
-
-require(moonBook)
-?radial
-model3=lm(NTAV~age*weight*HBP,data=radial)
-summary(model3)
-ggPredict(model3,interactive = TRUE)
-
-model4=lm(NTAV~age+sex,data=radial)
-summary(model4)
-ggPredict(model4,se=TRUE,interactive=TRUE)
-
-model5 <- lm(NTAV~age*weight,data=radial)
-AIC(model5)
-BIC(model4)
-BIC(model5)
-# 4. Exercise review
-# COMMON MISTAKES
-# small n?
-# regression line & coefficients
+# We can also check the best subsets picked automatically
+k <- ols_step_best_subset(model)
+plot(k) # goes to quartz
 
 
-# 5. EXTRA
 
-# Useful functions:
-coefficients(model) # model coefficients
-confint(model, level=0.95) # CIs for model parameters 
-anova(model) # anova table 
-vcov(model) # covariance matrix for model parameters 
-influence(model) # regression diagnostics
+# 3. Variables selection (forward, backward, stepwise)
 
-# Comparing Models
-# You can compare nested models with the anova( ) function. 
-# The following code provides a simultaneous test that x3 and x4 add 
-# to linear prediction above and beyond x1 and x2.
+# Stepwise forward algorithm
+# - Begins with a model that contains no variables 
+#       (called the Null Model)
+# - Then starts adding the most significant variables 
+#       one after the other
+# - Until a pre-specified stopping rule is reached 
+#       or until all the variables under consideration 
+#       are included in the mode
 
-anova(model3, model4)
+# How to: choose most significant variable:
+# It has the smallest p-value, or
+# It provides the highest increase in R^2, or
+# It provides the highest drop in model RSS 
 
-# Cross Validation
-# Variable Selection
-# Relative Importance
+data(surgical)
+?surgical
+
+# stepwise forward regression
+model <- lm(y ~ ., data = surgical)
+ols_step_forward_p(model) 
+ols_step_forward_p(model, details = TRUE)
+
+
+# Stepwise backward algorithm
+
+# - Begins with a model that contains all variables 
+#       under consideration (called the Full Model)
+# - Then starts removing the least significant 
+#       variables one after the other
+# - Until a pre-specified stopping rule is reached 
+#       or until no variable is left in the model
+
+# How to: determine the least significant variable
+
+# Has the highest p-value in the model, or
+# Its elimination from the model causes the lowest 
+#    drop in R2, or
+# Its elimination from the model causes the lowest 
+#   increase in RSS (Residuals Sum of Squares) 
+
+# stepwise backward regression
+ols_step_backward_p(model)
+ols_step_backward_p(model, details = TRUE)
+
+# Which to choose?
+# Use forward when
+# - when the number of variables under consideration 
+#           is very large (could be larger than n)
+# Use backward when
+# - you need to consider affect of all variables 
+#           simultaneously (in case of colinearity)
+
+# General rule:
+# Unless the number of candidate variables > n, 
+#       use a backward stepwise approach.
+
+
+# Mixed selection or Stepwise selection
+
+# Build regression model from a set of candidate 
+# predictor variables by entering and removing 
+# predictors based on p values, in a stepwise manner 
+# until there is no variable left to enter or remove 
+# any more. The model should include all the candidate 
+# predictor variables.
+ols_step_both_p(model)
+ols_step_both_p(model, details = TRUE)
+
+
+
+# Additional methods (not covering today)
+# based on Akaike Information Criteria:
+#   Stepwise AIC Forward Regression
+#   Stepwise AIC Backward Regression
+#   Stepwise AIC Regression
