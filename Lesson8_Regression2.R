@@ -21,14 +21,14 @@
 # 1. Multiple regression (mtcars)
 # 2. Variables selection (criterion & all combinations)
 # 3. Variables selection (forward, backward, stepwise)
-
+# 4. Different package
 
 
 # 1. Mtcars multiple regression
 
 # Establish the relationship between "mpg" as a response variable 
 # with "disp","hp" and "wt" as predictor variables
-
+?mtcars
 input <- mtcars[,c("mpg","disp","hp","wt")]
 print(head(input))
 
@@ -116,7 +116,7 @@ plot(k) # goes to quartz
 # Select the subset of predictors that do the best at meeting 
 # some criterion, such as having the largest R2 value or 
 # the smallest MSE, Mallow’s Cp or AIC.
-
+?ols_step_best_subset
 # We can also check the best subsets picked automatically
 k <- ols_step_best_subset(model)
 plot(k) # goes to quartz
@@ -167,6 +167,8 @@ ols_step_forward_p(model, details = TRUE)
 
 # stepwise backward regression
 ols_step_backward_p(model)
+ols_step_forward_aic(model)
+
 ols_step_backward_p(model, details = TRUE)
 
 # Which to choose?
@@ -190,13 +192,45 @@ ols_step_backward_p(model, details = TRUE)
 # until there is no variable left to enter or remove 
 # any more. The model should include all the candidate 
 # predictor variables.
-ols_step_both_p(model)
-ols_step_both_p(model, details = TRUE)
+ols_step_both_aic(model)
+ols_step_both_aic(model, details = TRUE)
 
 
+# 4. Using packages
+library(tidyverse)
+library(caret)
+library(leaps)
+library(MASS)
 
-# Additional methods (not covering today)
+data(swiss)
+?swiss
+
+# Fit the full model 
+full.model <- lm(Fertility ~., data = swiss)
+
+# Stepwise regression model
+# here direction could be: forward, backward and both
+step.model <- stepAIC(full.model, direction = "backward", 
+                      trace = TRUE)
+
+stepAIC(model, direction = "forward", 
+        trace = TRUE)
+
+summary(step.model)
+
+# we can limit the number of predictors using nvmax
+# and methods as “backward”, “forward” and “seqrep”
+?regsubsets
+models <- regsubsets(Fertility~., data = swiss, nvmax = 5,
+                     method = "seqrep")
+summary(models)
+par(mfrow=c(1, 1))
+plot(models,scale="adjr2")
+
+# 5. Additional methods (not covering today)
 # based on Akaike Information Criteria:
 #   Stepwise AIC Forward Regression
 #   Stepwise AIC Backward Regression
 #   Stepwise AIC Regression
+
+

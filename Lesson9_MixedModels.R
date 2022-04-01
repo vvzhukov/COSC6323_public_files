@@ -1,4 +1,5 @@
-# 04/01/2021
+# Created: 04/01/2021
+# Modified: 04/01/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -7,9 +8,15 @@
 # https://www.jaredknowles.com/journal/2014/5/17/mixed-effects-tutorial-2-fun-with-mermod-objects
 # https://rpubs.com/mlmcternan/BC-lme
 # http://jakewestfall.org/misc/Winter2014.pdf
+# https://bookdown.org/carillitony/bailey/chp6.html
 
 # PLAN
 # 0. Dummy variables
+#   CHAR VECTORS
+#   INT AND NUM VECTORS
+#   FACTOR MANIPULATION
+#   DUMMY INTERACTION
+# EXTRA
 # 1. Fit the Non-Multilevel Models
 # 2. GLM
 # 3. Fit a varying intercept model
@@ -19,6 +26,187 @@
 # 7. Review exercise
 
 # 0. Dummy variables
+library(tidyverse)
+library(magrittr)
+library(broom)
+library(estimatr)
+library(forcats)
+library(janitor)
+library(DT)
+
+# CHAR VECTORS as dummy vars
+# R uses factors to deal with categorical variables
+
+?UCBAdmissions
+
+ucb_admissions <- UCBAdmissions %>% 
+    as_tibble() %>%  
+    janitor::clean_names() %>% 
+    glimpse()
+
+# If we use Admit as an argument in lm, R will correctly 
+# treat Admit as single dummy variable with two categories
+
+ucb_admissions %>%
+    lm(n ~ admit, .)
+
+# R has coded Rejected as 1 and Admitted as 0. The regression 
+# indicates that mean of admitted is 146.25 while the mean 
+# number rejected is 230.92. We can confirm that directly as well.
+
+ucb_admissions %>% 
+    group_by(admit) %>% 
+    summarize(Average = mean(n))
+
+# Similarly, if we want to calculate the mean number of applicants 
+# by department, R will treat Dept as 5 dummy variables.
+
+ucb_admissions %>% 
+    lm(n ~ dept, .)
+
+# The mean number of applicants in Department A is 233.25. 
+# To find the mean number of applicants for each department 
+# add the appropriate coefficient to 233.25.
+
+# Question: What is the mean number of applicationss for the deptD?
+
+# Differences in Mean
+
+# Number of applications by Gender (alpha = 0.05)
+# We will try following approaches:
+# 1. Use t.test for class 'formula`
+# 2. Use lm or lm_robust
+
+# Assume equal variances
+ucb_admissions %>%
+    t.test(n ~ gender, ., var.equal = TRUE)
+ucb_admissions %>%
+    lm(n ~ gender, .) %>% 
+    tidy()
+
+# Assume unequal variances
+ucb_admissions %>%
+    t.test(n ~ gender, .)
+ucb_admissions %>%
+    lm_robust(n ~ gender, .) %>% 
+    tidy()
+
+
+# INT AND NUM VECTORS as dummy vars
+
+mtcars %>% 
+    glimpse()
+
+# check mpg for automatic and manual transmission
+mtcars %>%
+    lm_robust(mpg ~ am, .) %>% 
+    tidy()
+
+# but what should we do if the var is not coerced by 0 and 1?
+# Let's check mpg for different cylinders cars (4,6,8):
+mtcars %>%
+    lm(mpg ~ as.factor(cyl), .) %>% 
+    summary()
+# At least 1 is different
+
+# The base case is cars with 4 cylinders with an average 
+# mpg of 26.7 mpg. 6 cylinder cars average a statistically 
+# significant 6.9 mpg less than 4 cylinder cars. 8 cylinder 
+# cars average a statistically significant 11.6 mpg less than 4 
+# cylinder cars. These averages are statistically 
+# significantly different.
+
+# The same without factorisation:
+mtcars %>% 
+    lm(mpg ~ cyl, .) %>% 
+    tidy()
+
+# β = −2.88 tells us that for each additional cylinder 
+# fuel mileage will fall by 2.88 mpg.
+
+# FACTOR MANIPULATION
+# Need to: 
+#   renaming factors, re-ordering factors, combining factors, etc
+# Use forecast package
+
+### Coerce cyl to a factor
+mtcars$cyl %<>% 
+    as.character() %>% # forcats will not coerce integer or numeric vectors to factors
+    as_factor()
+mtcars$cyl %>% str()
+
+# Alternative:
+remove(mtcars)
+mtcars$cyl <- factor(mtcars$cyl)
+str(mtcars$cyl)
+# different order!
+
+mtcars %>% 
+    lm(mpg ~ cyl, .) %>% 
+    tidy()
+# This model indicates that cars with 6 cylinder engines 
+# average 19.74 mpg, cars with 4 cylinders average 6.9 mpg 
+# more than cars with 6 cylinders, and cars with 8 cylinders 
+# average 4.64 mpg less than cars with 6 cylinders. 
+# Suppose, instead, you’d prefere 4 cylinder cars to be 
+# the base case. 
+
+# fct_revel changes the order of a factor by hand.
+mtcars %>%
+    lm(mpg ~ fct_relevel(cyl, levels = c("4", "6", "8")), .) %>% 
+    tidy()
+
+# We can permanently re-level cylinders
+mtcars %>% 
+    mutate(cyl = fct_relevel(cyl, "6", after = 1)) %>% 
+    lm(mpg ~ cyl, .) %>% 
+    tidy()
+
+# More information regarding factor reordering:
+# https://forcats.tidyverse.org/reference/fct_relevel.html
+
+# Now lets suppose we want to change coding for the transmission
+# variable 'am'
+
+mtcars %>% 
+    mutate(am = factor(am, levels = c(0,1), 
+                       labels = c("automatic", "manual"))) %>% 
+    DT::datatable()
+
+# Lets go back to the model mpg = β0 + β1*am
+mtcars %>% 
+    mutate(am = factor(am, levels = c(0,1), 
+                       labels = c("automatic", "manual"))) %>% 
+    lm_robust(mpg ~ am, .) %>% 
+    tidy()
+
+
+# DUMMY INTERACTION variables
+# variable interaction 'a*b'
+# We will estimate the model
+# mpg = β0 + β1*am + β2*hp + β3*am*hp + e
+mtcars %>% 
+    mutate(am = factor(am, levels = c(0,1), 
+                       labels = c("automatic", "manual"))) %>% 
+    lm_robust(mpg ~ hp*am, .) %>% 
+    tidy()
+# Note: you do not need to explicitly show β1 and β2
+# in the equation. 
+# R checks the dummy variable and the interactions
+# In case you want just the interaction:
+# mpg = β0 + β1*am*hp + e
+
+mtcars %>% 
+    lm_robust(mpg ~ I(hp*am), .) %>% 
+    tidy()
+# I() is used to inhibit the interpretation of operators 
+# in formulas, so they are used as arithmetic operators
+
+
+
+
+
+
 # Level coding in R = contr.treatment
 ?options
 ?contrasts
@@ -42,10 +230,7 @@ level.means.coding.model = lm(y~fem+male+0)
 summary(ref.level.coding.model)
 summary(level.means.coding.model)
 
-
-
-
-
+# EXTRA
 # 1. Fit the Non-Multilevel Models
 
 #install.packages("lme4")
