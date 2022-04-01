@@ -17,6 +17,7 @@
 #   FACTOR MANIPULATION
 #   DUMMY INTERACTION
 # EXTRA
+# 0. GLM vs LM
 # 1. Fit the Non-Multilevel Models
 # 2. GLM
 # 3. Fit a varying intercept model
@@ -205,7 +206,39 @@ mtcars %>%
 
 
 
+# EXTRA
+# lm – Used to fit linear models
+# glm – Used to fit generalized linear models
+# family: The statistical family to use to fit the model.
+# Default is gaussian but other options include binomial, 
+# Gamma, and poisson among others.
 
+# If you use lm() or glm() to fit a linear regression model, 
+# they will produce the exact same results
+
+# However you may modify glm to fit more complex models
+# logistic regression
+# poisson regression
+
+#fit multiple linear regression model
+model <- lm(mpg ~ disp + hp, data=mtcars)
+#view model summary
+summary(model)
+
+#fit multiple linear regression model
+model <- glm(mpg ~ disp + hp, data=mtcars)
+#view model summary
+summary(model)
+
+#fit logistic regression model (next class topic)
+model <- glm(am ~ disp + hp, data=mtcars, family=binomial)
+#view model summary
+summary(model)
+
+#fit Poisson regression model
+model <- glm(am ~ disp + hp, data=mtcars, family=poisson)
+#view model summary
+summary(model)
 
 # Level coding in R = contr.treatment
 ?options
@@ -230,7 +263,6 @@ level.means.coding.model = lm(y~fem+male+0)
 summary(ref.level.coding.model)
 summary(level.means.coding.model)
 
-# EXTRA
 # 1. Fit the Non-Multilevel Models
 
 #install.packages("lme4")
@@ -239,7 +271,7 @@ summary(level.means.coding.model)
 library(lme4)  # load library
 library(arm)  # convenience functions for regression in R
 library(Matrix)
-lmm.data <- read.table("/Users/apple/Desktop/6323_TA/R_scripts/Lesson9_data/lmm.data.txt",
+lmm.data <- read.table("/Users/apple/Desktop/6323_TA/Git_code/Lesson9_data/lmm.data.txt",
                        header=TRUE, sep=",", 
                        na.strings="NA", 
                        dec=".", 
