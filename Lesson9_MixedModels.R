@@ -17,6 +17,7 @@
 #   FACTOR MANIPULATION
 #   DUMMY INTERACTION
 # EXTRA
+# 0. GLM vs LM
 # 1. Fit the Non-Multilevel Models
 # 2. GLM
 # 3. Fit a varying intercept model
@@ -68,7 +69,7 @@ ucb_admissions %>%
 # To find the mean number of applicants for each department 
 # add the appropriate coefficient to 233.25.
 
-# Question: What is the mean number of applicationss for the deptD?
+# Question: What is the mean number of applications for the deptD?
 
 # Differences in Mean
 
@@ -127,7 +128,7 @@ mtcars %>%
 # FACTOR MANIPULATION
 # Need to: 
 #   renaming factors, re-ordering factors, combining factors, etc
-# Use forecast package
+# Use forcats package
 
 ### Coerce cyl to a factor
 mtcars$cyl %<>% 
@@ -190,6 +191,7 @@ mtcars %>%
                        labels = c("automatic", "manual"))) %>% 
     lm_robust(mpg ~ hp*am, .) %>% 
     tidy()
+lm(mpg ~ hp*am, data=mtcars)
 # Note: you do not need to explicitly show β1 and β2
 # in the equation. 
 # R checks the dummy variable and the interactions
@@ -205,7 +207,48 @@ mtcars %>%
 
 
 
+# EXTRA
+# lm – Used to fit linear models
+# glm – Used to fit generalized linear models
+# family: The statistical family to use to fit the model.
+# Default is gaussian but other options include binomial, 
+# Gamma, and poisson among others.
 
+# If you use lm() or glm() to fit a linear regression model, 
+# they will produce the exact same results
+
+lm(mpg ~ hp*am, data=mtcars)
+?glm
+glm(mpg ~ hp*am, data=mtcars)
+
+# However you may modify glm to fit more complex models
+# logistic regression
+# poisson regression
+
+lme4::lmer()
+?lmer
+
+
+
+#fit multiple linear regression model
+model <- lm(mpg ~ disp + hp, data=mtcars)
+#view model summary
+summary(model)
+
+#fit multiple linear regression model
+model <- glm(mpg ~ disp + hp, data=mtcars)
+#view model summary
+summary(model)
+
+#fit logistic regression model (next class topic)
+model <- glm(am ~ disp + hp, data=mtcars, family=binomial)
+#view model summary
+summary(model)
+
+#fit Poisson regression model
+model <- glm(am ~ disp + hp, data=mtcars, family=poisson)
+#view model summary
+summary(model)
 
 # Level coding in R = contr.treatment
 ?options
@@ -230,7 +273,6 @@ level.means.coding.model = lm(y~fem+male+0)
 summary(ref.level.coding.model)
 summary(level.means.coding.model)
 
-# EXTRA
 # 1. Fit the Non-Multilevel Models
 
 #install.packages("lme4")
@@ -239,7 +281,7 @@ summary(level.means.coding.model)
 library(lme4)  # load library
 library(arm)  # convenience functions for regression in R
 library(Matrix)
-lmm.data <- read.table("/Users/apple/Desktop/6323_TA/R_scripts/Lesson9_data/lmm.data.txt",
+lmm.data <- read.table("/Users/apple/Desktop/6323_TA/Git_code/Lesson9_data/lmm.data.txt",
                        header=TRUE, sep=",", 
                        na.strings="NA", 
                        dec=".", 
