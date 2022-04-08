@@ -69,7 +69,7 @@ ucb_admissions %>%
 # To find the mean number of applicants for each department 
 # add the appropriate coefficient to 233.25.
 
-# Question: What is the mean number of applicationss for the deptD?
+# Question: What is the mean number of applications for the deptD?
 
 # Differences in Mean
 
@@ -128,7 +128,7 @@ mtcars %>%
 # FACTOR MANIPULATION
 # Need to: 
 #   renaming factors, re-ordering factors, combining factors, etc
-# Use forecast package
+# Use forcats package
 
 ### Coerce cyl to a factor
 mtcars$cyl %<>% 
@@ -191,6 +191,7 @@ mtcars %>%
                        labels = c("automatic", "manual"))) %>% 
     lm_robust(mpg ~ hp*am, .) %>% 
     tidy()
+lm(mpg ~ hp*am, data=mtcars)
 # Note: you do not need to explicitly show β1 and β2
 # in the equation. 
 # R checks the dummy variable and the interactions
@@ -216,9 +217,18 @@ mtcars %>%
 # If you use lm() or glm() to fit a linear regression model, 
 # they will produce the exact same results
 
+lm(mpg ~ hp*am, data=mtcars)
+?glm
+glm(mpg ~ hp*am, data=mtcars)
+
 # However you may modify glm to fit more complex models
 # logistic regression
 # poisson regression
+
+lme4::lmer()
+?lmer
+
+
 
 #fit multiple linear regression model
 model <- lm(mpg ~ disp + hp, data=mtcars)

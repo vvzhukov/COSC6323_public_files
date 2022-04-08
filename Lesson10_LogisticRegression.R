@@ -1,4 +1,5 @@
-# 04/09/2021
+# Created 04/09/2021
+# Updated 04/08/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -10,12 +11,9 @@
 # PLAN
 # 1. EXAMPLE 1 (Intro)
 # 2. EXAMPLE 2 (Advanced)
-#   - preparing data
 #   - simple regression
 #   - multiple regression
-#   - model evaluation and diagnostics
-# 3. EXAMPLE 3 (Project)
-#
+#   - interactions in logistic regression
 
 # The general mathematical equation for logistic regression is −
 # y = 1/(1+e^-(a+b1x1+b2x2+b3x3+...))
@@ -53,15 +51,18 @@ library(caret)
 library(pscl)
 
 # Load data 
-?Default
+# Data for predicting default
+
 default <- as_tibble(ISLR::Default)
 head(default)
 
 # Why do we use logistic regression?
-# Linear regression is not appropriate in the case of a qualitative response. 
+# Linear regression is not appropriate in the case 
+# of a qualitative response. 
+
 library(png)
 plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
-rasterImage(readPNG("/Users/apple/Desktop/6323_TA/R_scripts/Lesson10_data/plot1-1.png"),
+rasterImage(readPNG("/Users/apple/Desktop/6323_TA/Git_code/Lesson10_data/plot1-1.png"),
             xleft = 0, xright = 1, ybottom = 0, ytop = 1)
 
 # Prepare data
@@ -72,7 +73,8 @@ train <- default[sample, ]
 test <- default[!sample, ]
 
 model1 <- glm(default ~ balance, family = "binomial", data = train)
-# In the background the glm, uses maximum likelihood to fit the model.
+# In the background the glm, uses maximum likelihood to fit 
+# the model.
 
 default %>%
     mutate(prob = ifelse(default == "Yes", 1, 0)) %>%
@@ -86,22 +88,25 @@ default %>%
 # We can access summary of the model
 summary(model1)
 
-# Deviance is analogous to the sum of squares calculations in linear 
-# regression and is a measure of the lack of fit to the data in a logistic 
-# regression model. The null deviance represents the difference between a 
-# model with only the intercept (which means “no predictors”) and a saturated 
+# Deviance is analogous to the sum of squares calculations in 
+# linear regression and is a measure of the lack of fit to the 
+# data in a logistic regression model. The null deviance 
+# represents the difference between a model with only the
+# intercept (which means “no predictors”) and a saturated 
 # model (a model with a theoretically perfect fit). 
 
 # coefficients
 
-# the coefficient estimates from logistic regression characterize the 
-# relationship between the predictor and response variable on a LOG-odds scale
+# the coefficient estimates from logistic regression 
+# characterize the relationship between the predictor 
+# and response variable on a LOG-odds scale
 tidy(model1)
-# one-unit increase in balance is associated with an increase in the log 
-# odds of default by 0.0057 units
+# one-unit increase in balance is associated with an 
+# increase in the log odds of default by 0.0057 units
 exp(coef(model1))
-# OR balance coefficient as - for every one dollar increase in monthly 
-# balance carried, the odds of the customer defaulting increases by a factor 
+# OR balance coefficient as - for every one dollar 
+# increase in monthly balance carried, the odds of 
+# the customer defaulting increases by a factor 
 # of 1.0057
 
 # Similar to LM we may calculate conf intervals:
@@ -234,62 +239,12 @@ prediction(test.predicted.m2, test$default) %>%
     performance(measure = "auc") %>%
     .@y.values
 
+# INTERACTIONS IN LOGISTIC REGRESSION
+Berkeley = data_frame('Gender' = rep(c('m','f'), 6),
+                      'Dept' = c('A', 'A','B', 'B', 'C', 'C', 'D', 'D', 'E', 'E', 'F', 'F'),
+                      'Yes' = c(512, 89, 353, 17, 120, 202, 138, 131, 53, 94, 22, 24),
+                      'No' = c(313, 19, 207, 8, 205, 391, 279, 244, 138, 299,351, 317))
 
-# EAMPLE (project)
-# Article-level model to facilitate measuring factors 
-# relating to SA and CIP diversity
+full = glm(cbind(No,Yes) ~ Dept*Gender,family=binomial,data=Berkeley)
+summary(full)
 
-
-
-library(dplyr)
-library(ggplot2)
-library(rcompanion)
-library(rms)
-library(questionr)
-
-#### Read data
-df_article <- read.csv('/Users/apple/Desktop/6323_TA/Project/data/ArticleLevel-RegData-ALLSA_Xc_1_NData_655386_LONGXCIP2.csv')
-
-#### Filters
-###### Filter Year [1970-2018]
-###### Filter Kp >= 2 and Wp >= 2
-df_article = df_article %>% filter(Yp >= 1970)
-df_article = df_article %>% filter(Yp <= 2018)
-df_article = df_article %>% filter(Kp >= 2)
-df_article = df_article %>% filter(nMeSHMain >= 2)
-df_article = df_article %>% filter(IRegionRefinedp > 0 & IRegionRefinedp < 7)
-
-#### Convert Data types
-df_article$eidsp = as.factor(df_article$eidsp)
-df_article$Yp = as.integer(df_article$Yp)
-df_article$Kp = as.integer(df_article$Kp)
-df_article$MeanZJp = as.double(df_article$MeanZJp)
-df_article$XSAp = as.factor(df_article$XSAp)
-df_article$XCIPp = as.factor(df_article$XCIPp)
-df_article$NRegp = as.integer(df_article$NRegp)
-df_article$NSAp = as.integer(df_article$NSAp)
-df_article$NCIPp = as.integer(df_article$NCIPp)
-df_article$nMeSHMain = as.integer(df_article$nMeSHMain)
-df_article$IRegionRefinedp = as.factor(df_article$IRegionRefinedp)
-
-## Model 1 - for X_SA
-options(scipen=2)
-model1 <- glm(XSAp ~ Yp + MeanZJp + log(Kp) + log(nMeSHMain) + NRegp + NCIPp, 
-              data = df_article, family=binomial(link='logit'))
-
-# Here:
-# XSAp: binary indicator variable = 1 if any 2+ SA are present, and 0 otherwise
-# Yp: article’s publication year
-# MeanZJp: Journal’s mean Zp value calculated across all its articles 
-# Kp: article’s coauthor count based upon author list in PubMed record
-# NRegp: article’s count variable indicating the total number of regions 
-# NCIPp: article’s count variable indicating the total number of CIP 
-
-summary(model1)
-?nagelkerke
-nagelkerke(model1)
-
-?odds.ratio
-output = odds.ratio(model1) # HEAVY COMPUTATIONAL!
-output = apply(output, 2, formatC, format="f", digits=4)
-output
