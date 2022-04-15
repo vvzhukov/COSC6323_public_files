@@ -16,7 +16,7 @@
 #   - interactions in logistic regression
 
 # The general mathematical equation for logistic regression is −
-# y = 1/(1+e^-(a+b1x1+b2x2+b3x3+...))
+# y = e^(a+b1x1+b2x2+b3x3+...)/(1+e^(a+b1x1+b2x2+b3x3+...))
 # y is the response variable.
 # x is the predictor variable.
 # a and b are the coefficients which are numeric constants.
@@ -128,6 +128,7 @@ tidy(model2)
 
 # This model suggests that a student has nearly twice the odds of 
 # defaulting than non-students
+exp(coef(model2))
 
 predict(model2, data.frame(student = factor(c("Yes", "No"))), 
         type = "response")
@@ -140,11 +141,14 @@ model3 <- glm(default ~ balance + income + student, family = "binomial",
               data = train)
 tidy(model3)
 
+model4 <- glm(default ~ log(balance+1) + log(income+1) + student, family = "binomial", 
+              data = train)
+summary(model4)
 # Which variable is the most influential in predicting the responce?
 caret::varImp(model3)
 
 # Predictions
-new.df <- tibble(balance = 1500, income = 40, student = c("Yes", "No"))
+new.df <- tibble(balance = 1500, income = 40000, student = c("Yes", "No"))
 predict(model3, new.df, type = "response")
 
 # DIAGNOSTICS
@@ -152,11 +156,14 @@ predict(model3, new.df, type = "response")
 # Likelihood Ratio Test 
 anova(model1, model3, test = "Chisq")
 # model3 does provide an improved model fit.
+anova(model3, model4, test = "Chisq")
 
-# Pseudo R^2
+# Pseudo R^2 as an alternative to the R^2
+# 1 - LN(m1)/LN(m0)
 list(model1 = pscl::pR2(model1)["McFadden"],
      model2 = pscl::pR2(model2)["McFadden"],
-     model3 = pscl::pR2(model3)["McFadden"])
+     model3 = pscl::pR2(model3)["McFadden"],
+     model4 = pscl::pR2(model4)["McFadden"])
 # model2 has a very low value corroborating its poor fit
 
 # Residuals
@@ -166,7 +173,7 @@ list(model1 = pscl::pR2(model1)["McFadden"],
 
 model1_data <- augment(model1) %>% 
     mutate(index = 1:n())
-
+head(model1_data)
 ggplot(model1_data, aes(index, .std.resid, color = default)) + 
     geom_point(alpha = .5) +
     geom_ref_line(h = 3)
@@ -189,11 +196,14 @@ model1_data %>%
 test.predicted.m1 <- predict(model1, newdata = test, type = "response")
 test.predicted.m2 <- predict(model2, newdata = test, type = "response")
 test.predicted.m3 <- predict(model3, newdata = test, type = "response")
+test.predicted.m4 <- predict(model4, newdata = test, type = "response")
+
 
 list(
     model1 = table(test$default, test.predicted.m1 > 0.5) %>% prop.table() %>% round(3),
     model2 = table(test$default, test.predicted.m2 > 0.5) %>% prop.table() %>% round(3),
-    model3 = table(test$default, test.predicted.m3 > 0.5) %>% prop.table() %>% round(3)
+    model3 = table(test$default, test.predicted.m3 > 0.5) %>% prop.table() %>% round(3),
+    model4 = table(test$default, test.predicted.m4 > 0.5) %>% prop.table() %>% round(3)
 )
 
 # We don’t see much improvement between models 1 and 3 and although model 2 
@@ -211,23 +221,35 @@ test %>%
 # ROC receiving operating characteristic
 # visual measure of classifier performance
 
+
 library(ROCR)
+# visual measure of classifier performance
+
+# Using the proportion of positive data points 
+# that are correctly considered as positive and 
+# the proportion of negative data points that are 
+# mistakenly considered as positive, we generate 
+# a graphic that shows the trade off between the 
+# rate at which you can correctly predict something 
+# with the rate of incorrectly predicting something
+
 
 par(mfrow=c(1, 2))
-
 prediction(test.predicted.m1, test$default) %>%
     performance(measure = "tpr", x.measure = "fpr") %>%
     plot()
-
 prediction(test.predicted.m2, test$default) %>%
     performance(measure = "tpr", x.measure = "fpr") %>%
     plot()
 
 # AUC - area under curve
 # ranges from 0.5 to 1.0 
-# values above 0.80 indicate that the model does a good job in 
-# discriminating between the two categories which comprise our 
-# target variable
+# values above 0.80 indicate that the model does a 
+# good job in discriminating between the two 
+# categories which comprise our target variable
+
+# Visually we may tell that model #1 performed
+# better
 
 # model 1 AUC
 prediction(test.predicted.m1, test$default) %>%
@@ -238,6 +260,9 @@ prediction(test.predicted.m1, test$default) %>%
 prediction(test.predicted.m2, test$default) %>%
     performance(measure = "auc") %>%
     .@y.values
+
+# More model improvements should give you better 
+# results
 
 # INTERACTIONS IN LOGISTIC REGRESSION
 Berkeley = data_frame('Gender' = rep(c('m','f'), 6),
