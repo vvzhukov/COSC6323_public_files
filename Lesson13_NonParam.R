@@ -72,7 +72,7 @@ ggboxplot(my_data$weight,
 # mice differs from 25g (two-tailed test)?
 
 # One-sample wilcoxon test
-res <- wilcox.test(my_data$weight, mu = 25)
+res <- wilcox.test(my_data$weight, mu = 19)
 # Printing the results
 res 
 
@@ -94,14 +94,18 @@ wilcox.test(my_data$weight, mu = 25,
             alternative = "greater")
 
 # Exercise #1
-# Given 15 measures of the detail length, identify if it is 
-# smaller than 8
+# Given 15 measures of the detail length, identify if 
+# it is smaller than 8 inches
 details <- c(8.2, 7.5, 8.1, 7.7, 8.2,
              7.7, 8.4, 8.5, 7.0, 8.3,
              8.6, 8.1, 8.0, 7.8, 7.9)
-# what are main assumptions?
-# which test we are using and why? 
+# (1) what are main assumptions?
+# (2) which test we are using and why? 
+# Answer should include: p-value, conclusion and 
+# short answers to the questions (1) and (2) 
 
+wilcox.test(details, mu = 8,
+            alternative = "less")
 
 
 # II. Mann-Whitney-Wilcoxon Test 
@@ -159,6 +163,18 @@ wilcox.test(weight ~ group, data = my_data,
             exact = FALSE, alternative = "greater")
 
 
+# Exercise #2
+# Given 15 measures of 2 details sets length, identify if 2nd
+# detail set is larger than the first.
+detail1 <- c(8.2, 7.5, 8.1, 7.7, 8.2,
+             7.7, 8.4, 8.5, 7.0, 8.3,
+             8.6, 8.1, 8.0, 7.8, 7.9)
+
+detail2 <- c(8.3, 7.2, 8.2, 7.9, 8.6,
+             7.4, 8.6, 7.5, 7.5, 8.4,
+             8.8, 8.3, 8.0, 7.9, 8.1)
+
+# Answer should include: stat, p-value, conclusion
 
 
 # III. Paired Samples Wilcoxon Test (non-parametric)
@@ -218,8 +234,6 @@ res$p.value
 # weight after treatment with a p-value = 0.001953
 
 
-
-
 # IV. Kruskal-Wallis Test (one-way ANOVA)
 # Extends the two-samples Wilcoxon test in the 
 # situation where there are more than two groups. 
@@ -269,8 +283,6 @@ pairwise.wilcox.test(PlantGrowth$weight, PlantGrowth$group,
                      p.adjust.method = "BH", exact=FALSE)
 # The pairwise comparison shows that, only trt1 and trt2 
 # are significantly different (p < 0.05).
-
-
 
 
 # V. Friedman test
