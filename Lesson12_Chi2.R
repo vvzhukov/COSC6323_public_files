@@ -7,6 +7,9 @@
 # 3. https://cran.r-project.org/web/packages/XNomial/vignettes/XNomial.html
 # 4. https://www.datacamp.com/community/tutorials/contingency-tables-r
 # 5. https://data.library.virginia.edu/an-introduction-to-loglinear-models/
+# 6. Agresti, A. An Introduction to Categorical Data Analysis, 1st Ed. 1996. Ch. 6.
+# 7. Faraway, J. Extending the Linear Model with R. 2006. Ch. 4.
+# 8. Venables, W.N and Ripley, B.D. Modern Applied Statistics with S, 4th Ed. 2002. Ch. 7.
 
 # PLAN
 # 1. Hypothesis test for a multinomial population
@@ -46,12 +49,14 @@ smoke.freq = table(survey$Smoke)
 # supports it at .05 significance level.
 
 smoke.prob = c(0.045, 0.795, 0.085, 0.075)
+?chisq.test
 chisq.test(smoke.freq, p=smoke.prob)
 # Here p = 0.99 > alpha (0.05) so H0 stands and
 # the sample data in survey supports the campus-wide 
 # smoking statistics
 
-# Lets review another useful package for multinomial problems
+# Lets review another useful package for 
+# multinomial problems
 library(XNomial)
 # Two main functions: xmulti() and xmonte()
 # Both used to finding the P value used to test the 
@@ -153,7 +158,7 @@ table(Cars93$Type)
 ?prop.table()
 
 # Function prop.table converts it into fractions:
-prop.table(table(Cars93$Type))
+prop.table(table(Cars93$Type))*100
 
 # Same with origin
 table(Cars93$Origin)
@@ -173,7 +178,7 @@ prop.table(CarType_Origin)*100
 # the distribution within group
 prop.table(CarType_Origin, margin = 2)*100
 
-# We may apply Chi^2 tet here as well
+# We may apply Chi^2 test here as well
 # Lets see check Type and Origin are independent:
 chisq.test(Cars93$Type, Cars93$Origin)
 # Apparently, they're not.
@@ -286,6 +291,7 @@ exp(coef(mod1)["marijuanayes:alcoholyes"])
 # Students who tried marijuana have estimated odds of 
 # having tried alcohol that are 19 times the estimated 
 # odds for students who did not try marijuana.
+exp(coef(mod1)["cigaretteyes:alcoholyes"])
 
 # Confidence intervals:
 exp(confint(mod1, parm = c("cigaretteyes:marijuanayes",
@@ -314,6 +320,25 @@ summary(mod2)
 # anova function
 
 anova(mod1, mod2)
-pchisq(0.373, df = 1, lower.tail = F)
+pchisq(0.374, df = 1, lower.tail = F)
 # We fail to reject the null hypothesis that mod1 fits 
 # just as well as mod2
+
+# We may also try to include only specific interactions:
+mod3 <- glm(Freq ~ (cigarette * marijuana) + 
+                (alcohol * marijuana), 
+            data = seniors.df, family = poisson)
+
+anova(mod3, mod1)
+pchisq(187.75, df = 1, lower.tail = F)
+
+# The probability of seeing such a big change in 
+# deviance (187.38) if the models really were no 
+# different is remote. There appears to be good 
+# evidence that the homogeneous association model 
+# provides a much better fit than the model that 
+# assumes conditional independence between alcohol 
+# and cigarette use.
+
+# Loglinear models work for larger tables that extend 
+# into 4 or more dimensions. Hard interpretation.

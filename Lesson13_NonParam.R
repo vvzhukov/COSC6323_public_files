@@ -1,4 +1,5 @@
-# 04/30/2021
+# Created 04/30/2021
+# Updated 04/29/2022
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -10,44 +11,48 @@
 # https://www.r-bloggers.com/2012/02/beware-the-friedman-test/
 # https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/friedman.test
 # http://www.sthda.com/english/articles/38-regression-model-validation/156-bootstrap-resampling-essentials-in-r/
-
+# http://www.sthda.com/english/wiki/text-mining-and-word-cloud-fundamentals-in-r-5-simple-steps-you-should-know
 
 
 
 # PLAN
-# I. One-sample Wilcoxon signed rank test  (One-sample nonparametric Test)
-# II. Mann-Whitney-Wilcoxon Test (Unpaired Two-Samples Wilcoxon Test)
-# III. Paired Samples Wilcoxon Test (non-parametric)
-# IV. Kruskal-Wallis Test (one-way ANOVA)
+# I. One-sample Wilcoxon signed rank test  
+#       (One-sample nonparametric Test)
+# II. Mann-Whitney-Wilcoxon Test 
+#       (Unpaired Two-Samples Wilcoxon Test)
+# III. Paired Samples Wilcoxon Test 
+#       (non-parametric)
+# IV. Kruskal-Wallis Test 
+#       (one-way ANOVA)
 # V. Friedman test
 # VI. Bootstrapping
+# VII. Word frequencies / clouds
 
 
 
-
-# A statistical method is called non-parametric if it makes no assumption on 
-# the population distribution or sample size.
+# A statistical method is called non-parametric if it 
+# makes no assumption on the population distribution 
+# or sample size.
 
 # I. Wilcoxon signed rank test (One-sample nonparametric Test)
-# The one-sample Wilcoxon signed rank test is a non-parametric alternative 
-# to one-sample t-test when the data cannot be assumed to be normally distributed.
+# The one-sample Wilcoxon signed rank test is a 
+# non-parametric alternative to one-sample t-test 
+# when the data cannot be assumed to be normally distributed.
 
 # IMPORTANT assumption:
-# - the data should be distributed symmetrically around the median. 
-#   In other words, there should be roughly the same number of values 
-#   above and below the median.
+# - the data should be distributed symmetrically (median) 
 
 #if(!require(devtools)) install.packages("devtools")
-#devtools::install_github("kassambara/ggpubr")
 
 # HOW-TO
 # wilcox.test(x, mu = 0, alternative = "two.sided")
 # x: a numeric vector containing your data values
-# mu: the theoretical mean/median value. Default is 0 but you can change it.
-# alternative: the alternative hypothesis. Allowed value is one of “two.sided” (default), 
-#  “greater” or “less”.
+# mu: the theoretical mean/median value (default - 0). 
+# alternative: the alternative hypothesis. 
+# Allowed value is one of “two.sided” (default), “greater” or “less”.
 
-# Here, we will use an example data set containing the weight of 10 mice.
+# Here, we will use an example data set containing 
+# the weight of 10 mice.
 set.seed(1234)
 my_data <- data.frame(
     name = paste0(rep("M_", 10), 1:10),
@@ -63,7 +68,8 @@ ggboxplot(my_data$weight,
           ylab = "Weight (g)", xlab = FALSE,
           ggtheme = theme_minimal())
 
-# We want to know, if the average weight of the mice differs from 25g (two-tailed test)?
+# We want to know, if the average weight of the 
+# mice differs from 25g (two-tailed test)?
 
 # One-sample wilcoxon test
 res <- wilcox.test(my_data$weight, mu = 25)
@@ -73,30 +79,47 @@ res
 # print only the p-value
 res$p.value
 
-# reject the null hypothesis and conclude that the average weight of the mice is 
-# significantly different from 25g with a p-value = 0.005793
+# reject the null hypothesis and conclude that the 
+# average weight of the mice is significantly 
+# different from 25g with a p-value = 0.005793
 
-# test whether the median weight of mice is less than 25g (one-tailed test)
+# test whether the median weight of mice is 
+# less than 25g (one-tailed test)
 wilcox.test(my_data$weight, mu = 25,
             alternative = "less")
 
-# test whether the median weight of mice is greater than 25g (one-tailed test)
+# test whether the median weight of mice is 
+# greater than 25g (one-tailed test)
 wilcox.test(my_data$weight, mu = 25,
             alternative = "greater")
 
+# Exercise #1
+# Given 15 measures of the detail length, identify if it is 
+# smaller than 8
+details <- c(8.2, 7.5, 8.1, 7.7, 8.2,
+             7.7, 8.4, 8.5, 7.0, 8.3,
+             8.6, 8.1, 8.0, 7.8, 7.9)
+# what are main assumptions?
+# which test we are using and why? 
 
 
 
-# II. Mann-Whitney-Wilcoxon Test (unpaired Two-Samples Wilcoxon Test)
-# The unpaired two-samples Wilcoxon test (also known as Wilcoxon rank sum test or 
-# Mann-Whitney test) is a non-parametric alternative to the unpaired two-samples t-test
+# II. Mann-Whitney-Wilcoxon Test 
+# (unpaired Two-Samples Wilcoxon Test)
+# The unpaired two-samples Wilcoxon test 
+# (also known as Wilcoxon rank sum test or Mann-Whitney test) 
+# is a non-parametric alternative to the 
+# unpaired two-samples t-test
 
-# Here, we’ll use an example data set, which contains the weight of 18 individuals 
-# (9 women and 9 men):
+# Here, we’ll use an example data set, which contains 
+# the weight of 18 individuals (9 women and 9 men):
 
 # Data in two numeric vectors
-women_weight <- c(38.9, 61.2, 73.3, 21.8, 63.4, 64.6, 48.4, 48.8, 48.5)
-men_weight <- c(67.8, 60, 63.4, 76, 89.4, 73.3, 67.3, 61.3, 62.4) 
+women_weight <- c(38.9, 61.2, 73.3, 21.8, 63.4, 
+                  64.6, 48.4, 48.8, 48.5)
+men_weight <- c(67.8, 60, 63.4, 76, 89.4, 
+                73.3, 67.3, 61.3, 62.4) 
+
 # Create a data frame
 my_data <- data.frame( 
     group = rep(c("Woman", "Man"), each = 9),
@@ -122,13 +145,16 @@ res <- wilcox.test(women_weight, men_weight)
 res
 
 res$p.value
-# We can conclude that men’s median weight is significantly different 
-# from women’s median weight with a p-value = 0.02712.
+# We can conclude that men’s median weight is 
+# significantly different from women’s median 
+# weight with a p-value = 0.02712.
 
-# test whether the median men’s weight is less than the median women’s weight
+# test whether the median men’s weight is less 
+# than the median women’s weight
 wilcox.test(weight ~ group, data = my_data, 
             exact = FALSE, alternative = "less")
-# test whether the median men’s weight is greater than the median women’s weight
+# test whether the median men’s weight is greater 
+# than the median women’s weight
 wilcox.test(weight ~ group, data = my_data,
             exact = FALSE, alternative = "greater")
 
@@ -136,12 +162,16 @@ wilcox.test(weight ~ group, data = my_data,
 
 
 # III. Paired Samples Wilcoxon Test (non-parametric)
-# The paired samples Wilcoxon test (also known as Wilcoxon signed-rank test) 
-# is a non-parametric alternative to paired t-test used to compare paired data.
+# The paired samples Wilcoxon test 
+# (also known as Wilcoxon signed-rank test) 
+# is a non-parametric alternative to paired t-test used 
+# to compare paired data.
 # Weight of the mice before treatment
-before <-c(200.1, 190.9, 192.7, 213, 241.4, 196.9, 172.2, 185.5, 205.2, 193.7)
+before <-c(200.1, 190.9, 192.7, 213, 241.4, 
+           196.9, 172.2, 185.5, 205.2, 193.7)
 # Weight of the mice after treatment
-after <-c(392.9, 393.2, 345.1, 393, 434, 427.9, 422, 383.9, 392.3, 352.2)
+after <-c(392.9, 393.2, 345.1, 393, 434, 
+          427.9, 422, 383.9, 392.3, 352.2)
 # Create a data frame
 my_data <- data.frame( 
     group = rep(c("before", "after"), each = 10),
@@ -183,15 +213,16 @@ wilcox.test(before, after, paired = TRUE)
 res <- wilcox.test(weight ~ group, data = my_data, paired = TRUE)
 
 res$p.value
-# Median weight of the mice before treatment is significantly different 
-# from the median weight after treatment with a p-value = 0.001953
+# Median weight of the mice before treatment 
+# is significantly different from the median 
+# weight after treatment with a p-value = 0.001953
 
 
 
 
 # IV. Kruskal-Wallis Test (one-way ANOVA)
-# Extends the two-samples Wilcoxon test in the situation where there are 
-# more than two groups. 
+# Extends the two-samples Wilcoxon test in the 
+# situation where there are more than two groups. 
 
 my_data <- PlantGrowth
 head(my_data)
@@ -216,7 +247,8 @@ group_by(my_data, group) %>%
 library("ggpubr")
 # BOXPLOT. Plot weight by group and color by group
 ggboxplot(my_data, x = "group", y = "weight", 
-          color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          color = "group", 
+          palette = c("#00AFBB", "#E7B800", "#FC4E07"),
           order = c("ctrl", "trt1", "trt2"),
           ylab = "Weight", xlab = "Treatment")
 
@@ -228,19 +260,23 @@ ggline(my_data, x = "group", y = "weight",
        ylab = "Weight", xlab = "Treatment")
 
 kruskal.test(weight ~ group, data = my_data)
-# As the p-value is less than the significance level 0.05, we can conclude 
-# that there are significant differences between the treatment groups.
+# As the p-value is less than the significance 
+# level 0.05, we can conclude that there are 
+# significant differences between the treatment groups.
 
 # Which pairs are different??
 pairwise.wilcox.test(PlantGrowth$weight, PlantGrowth$group,
                      p.adjust.method = "BH", exact=FALSE)
-# The pairwise comparison shows that, only trt1 and trt2 are significantly 
-# different (p < 0.05).
+# The pairwise comparison shows that, only trt1 and trt2 
+# are significantly different (p < 0.05).
 
 
 
 
 # V. Friedman test
+# Similar to the parametric repeated measures ANOVA, 
+# it is used to detect differences in treatments across 
+# multiple test attempts
 
 # Example 1
 ## Hollander & Wolfe (1973), p. 140ff.
@@ -279,12 +315,12 @@ RoundingTimes <-
                            c("Round Out", "Narrow Angle", "Wide Angle")))
 
 friedman.test(RoundingTimes)
-## => strong evidence against the null that the methods are equivalent
-##    with respect to speed
+## => strong evidence against the null that the 
+## methods are equivalent with respect to speed
 
 # Example 2
 # The Number of Breaks in Yarn during Weaving
-
+?warpbreaks
 wb <- aggregate(warpbreaks$breaks,
                 by = list(w = warpbreaks$wool,
                           t = warpbreaks$tension),
@@ -297,12 +333,13 @@ friedman.test(x ~ w | t, data = wb)
 
 
 # VI. Bootstrapping
-# bootstrap resampling method can be used to measure the accuracy of a 
-# predictive model. Additionally, it can be used to measure the 
-# uncertainty associated with any statistical estimator.
+# bootstrap re sampling method can be used to measure 
+# the accuracy of a predictive model. Additionally, 
+# it can be used to measure the uncertainty associated 
+# with any statistical estimator.
 
-# Following example uses a bootstrap with 100 resamples to test a linear 
-# regression model:
+# Following example uses a bootstrap with 100 re samples 
+# to test a linear regression model:
 library(tidyverse)
 library(caret)
 
@@ -313,6 +350,7 @@ data("swiss")
 sample_n(swiss, 3)
 
 # Define training control
+?caret::train
 train.control <- trainControl(method = "boot", number = 100)
 # Train the model
 model <- train(Fertility ~., data = swiss, method = "lm",
@@ -320,14 +358,19 @@ model <- train(Fertility ~., data = swiss, method = "lm",
 # Summarize the results
 print(model)
 
-# Creating a function that returns the regression model coefficients:
+# Creating a function that returns the regression model 
+# coefficients:
+
 model_coef <- function(data, index){
     coef(lm(Fertility ~., data = data, subset = index))
 }
 model_coef(swiss, 1:47)
 
-# Compute the standard errors of 500 bootstrap estimates for the coefficients
+# Compute the standard errors of 500 bootstrap 
+# estimates for the coefficients
 library(boot)
+?boot
+# Generate R bootstrap replicates of a statistic applied to data.
 boot(swiss, model_coef, 500)
 
 # Here:
@@ -341,13 +384,82 @@ boot(swiss, model_coef, 500)
 # and upper:
 -0.172 + (2*0.06)
 
-# So there is 95% chance that interval [-0.292, -0.052] will contain the true
-# value of the coefficient
+# So there is 95% chance that interval [-0.292, -0.052] 
+# will contain the true value of the coefficient
 
 summary(lm(Fertility ~., data = swiss))$coef
-# LM gives you different results as it relys on some assumptions regarding 
-# the data
+# LM gives you different results as it relies on some 
+# assumptions regarding the data
 
-# bootstrap approach does not rely on any of these assumptions made by the 
-# linear model, and so it is likely giving a more accurate estimate of the 
+# bootstrap approach does not rely on any of these 
+# assumptions made by the linear model, and so it 
+# is likely giving a more accurate estimate of the 
 # coefficients standard errors than is the summary() function.
+
+
+# VII. Word frequencies / clouds
+# Install
+#install.packages("tm")  # for text mining
+#install.packages("SnowballC") # for text stemming
+#install.packages("wordcloud") # word-cloud generator 
+#install.packages("RColorBrewer") # color palettes
+# Load
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+
+filePath <- "http://www.sthda.com/sthda/RDoc/example-files/martin-luther-king-i-have-a-dream-speech.txt"
+text <- readLines(filePath)
+
+# Load the data as a corpus
+?Corpus
+docs <- Corpus(VectorSource(text))
+inspect(docs)
+
+# Transform text
+toSpace <- content_transformer(function (x , pattern ) 
+    gsub(pattern, " ", x))
+docs <- tm_map(docs, toSpace, "/")
+docs <- tm_map(docs, toSpace, "@")
+docs <- tm_map(docs, toSpace, "\\|")
+
+# Convert the text to lower case
+docs <- tm_map(docs, content_transformer(tolower))
+# Remove numbers
+docs <- tm_map(docs, removeNumbers)
+# Remove english common stopwords
+docs <- tm_map(docs, removeWords, stopwords("english"))
+# Remove your own stop word
+# specify your stopwords as a character vector
+docs <- tm_map(docs, removeWords, c("blabla1", "blabla2")) 
+# Remove punctuations
+docs <- tm_map(docs, removePunctuation)
+# Eliminate extra white spaces
+docs <- tm_map(docs, stripWhitespace)
+# Text stemming
+# docs <- tm_map(docs, stemDocument)
+
+# Build a text document matrix
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+head(d, 10)
+
+# Generate word cloud
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+# Explore frequent terms and their associations
+findFreqTerms(dtm, lowfreq = 4)
+# Which words are associated with “freedom” in I 
+# have a dream speech
+findAssocs(dtm, terms = "freedom", corlimit = 0.3)
+
+# Plot 10 most frequent words
+barplot(d[1:10,]$freq, las = 2, names.arg = d[1:10,]$word,
+        col ="lightblue", main ="Most frequent words",
+        ylab = "Word frequencies")
