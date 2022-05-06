@@ -175,6 +175,9 @@ detail2 <- c(8.3, 7.2, 8.2, 7.9, 8.6,
              8.8, 8.3, 8.0, 7.9, 8.1)
 
 # Answer should include: stat, p-value, conclusion
+wilcox.test(detail1, detail2,
+            exact = FALSE, alternative = "greater")
+
 
 
 # III. Paired Samples Wilcoxon Test (non-parametric)
@@ -240,6 +243,7 @@ res$p.value
 
 my_data <- PlantGrowth
 head(my_data)
+summary(PlantGrowth)
 
 levels(my_data$group)
 
@@ -342,8 +346,6 @@ friedman.test(wb$x, wb$w, wb$t)
 friedman.test(x ~ w | t, data = wb)
 
 
-
-
 # VI. Bootstrapping
 # bootstrap re sampling method can be used to measure 
 # the accuracy of a predictive model. Additionally, 
@@ -382,7 +384,8 @@ model_coef(swiss, 1:47)
 # estimates for the coefficients
 library(boot)
 ?boot
-# Generate R bootstrap replicates of a statistic applied to data.
+# Generate R bootstrap replicates of a statistic 
+# applied to data.
 boot(swiss, model_coef, 500)
 
 # Here:
@@ -407,6 +410,12 @@ summary(lm(Fertility ~., data = swiss))$coef
 # assumptions made by the linear model, and so it 
 # is likely giving a more accurate estimate of the 
 # coefficients standard errors than is the summary() function.
+
+#  Spearman 
+data(mtcars)
+?mtcars
+?cor.test
+cor.test(mtcars$mpg, mtcars$hp, method="spearman")
 
 
 # VII. Word frequencies / clouds
@@ -444,7 +453,13 @@ docs <- tm_map(docs, removeNumbers)
 docs <- tm_map(docs, removeWords, stopwords("english"))
 # Remove your own stop word
 # specify your stopwords as a character vector
-docs <- tm_map(docs, removeWords, c("blabla1", "blabla2")) 
+docs <- tm_map(docs, removeWords, c("get", "can", 
+                                    "assignments",
+                                    "going",
+                                    "though",
+                                    "got",
+                                    "will",
+                                    "might")) 
 # Remove punctuations
 docs <- tm_map(docs, removePunctuation)
 # Eliminate extra white spaces
