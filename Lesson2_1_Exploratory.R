@@ -11,7 +11,7 @@ class(x)
 x.mean <- mean(x)
 
 # Case with NA in observations:
-x <- c(1,2,3,41,1,12,3,-23,12, NA, NA)
+x <- c(x, NA, NA)
 x.mean <- mean(x)
 x.mean <- mean(x, na.rm = TRUE)
 
@@ -143,20 +143,22 @@ upd_mtcars$score <- 0
 upd_mtcars$score <- ifelse(upd_mtcars$hp<70, 1,
                            ifelse(upd_mtcars$hp<100,2,3))
 
-# PDF
+# PDF probability density
 ?density()
 density(upd_mtcars$score)
 plot(density(upd_mtcars$score), main = "PDF of score")
 
-# CDF
+# CDF cumulative distribution
 ?ecdf()
 ecdf(upd_mtcars$score)
 plot(ecdf(upd_mtcars$score), main = "CDF of score")
 
+
+
 ## Now if we have time
 ## CENTRAL LIMIT THEOREM EXAMPLE
 # https://www.analyticsvidhya.com/blog/2019/05/statistics-101-introduction-central-limit-theorem/
-data<-read.csv("/Users/apple/Desktop/6323_TA/Git_code/Clt-data.csv")
+data<-read.csv("/Users/apple/Desktop/6323_TA/COSC6323_public_files-main/Clt-data.csv")
 dim(data)
 head(data,3)
 
