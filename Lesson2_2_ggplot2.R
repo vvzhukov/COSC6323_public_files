@@ -207,3 +207,41 @@ t + coord_cartesian(xlim = c(0, 100), ylim = c(10, 20))
 
 # Great examples:
 # https://www.r-graph-gallery.com/index.html
+
+
+# COMBINING PLOTS
+
+library(ggpubr)
+
+# ToothGrowth
+data("ToothGrowth")
+head(ToothGrowth)
+
+
+# Box plot (bp)
+bxp <- ggboxplot(ToothGrowth, x = "dose", y = "len",
+                 color = "dose", palette = "jco")
+bxp
+# Dot plot (dp)
+dp <- ggdotplot(ToothGrowth, x = "dose", y = "len",
+                color = "dose", palette = "jco", binwidth = 1)
+dp
+
+
+ggarrange(bxp, dp)
+
+# Flip, remove some excessive data, add common legend
+ggarrange(bxp + rremove("x.text") + rremove("xlab"), 
+          dp, 
+          labels = c("A", "B"),
+          ncol = 1, nrow = 2,
+          common.legend = T)
+
+# Change grid for the plots
+ggarrange(bxp + rremove("x.text") + rremove("xlab"), 
+          dp, 
+          labels = c("A", "B"),
+          ncol = 1, nrow = 2,
+          common.legend = T,
+          heights = c(0.5,1),
+          widths = c(1,1))
