@@ -4,11 +4,13 @@
 # Sources
 # https://www.r-bloggers.com/2021/06/how-to-find-z-score-in-r-easy-calculation-quick-guide/
 # https://bookdown.org/mrenna/statbook/statistical-inference.html#hypothesis-testing
+# https://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/R/R-Manual/R-Manual10.html
 
 # Plan:
 # 1. Sampling distribution
 # 2. Sampling size and Sampling distribution
 # 3. Z score
+# 4. Hypothesis testing
 
 
 # SAMPLING DISTRIBUTION
@@ -216,6 +218,24 @@ qnorm(0.75, mean = 0, sd = 1)
 # Its value being below 1 means that the point that separates the 
 # lower 75% observations and upper 25% observations is within one 
 # standard deviation of the average, towards the right.
+
+
+# The standard normal (z) distribution
+
+# The pnorm( ) function gives the area, or probability, 
+# below a z-value:
+pnorm(1.96)
+
+# To find a two-tailed area 
+# (corresponding to a 2-tailed p-value) for a positive z-value:
+2*(1-pnorm(1.96))
+
+# The qnorm( ) function gives critical z-values corresponding 
+# to a given lower-tailed area:
+qnorm(.05)
+
+# To find a critical value for a two-tailed 95% confidence interval:
+qnorm(1-.05/2)
 
 
 # HYPOTHESIS TESTING
