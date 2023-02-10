@@ -1,19 +1,18 @@
 # Created: 02/11/2021
-# Updated: 02/18/2022
+# Updated: 02/10/2023
 # Vitalii Zhukov
 # COSC 6323
 
 # Based on:
 # https://www.r-bloggers.com/2015/07/hypothesis-testing-on-normally-distributed-data-in-r/
 # https://blog.minitab.com/en/understanding-statistics/what-can-you-say-when-your-p-value-is-greater-than-005
+
 # Plan:
-# 
 # 1. HYPOTHESIS TEST ON Mean (custom function, example, exercise)
 # 2. HYPOTHESIS TEST ON Variance (example, exercise)
 # 3. HYPOTHESIS TEST ON Proportion (example, exercise)
-# 4. HW discussion
-# 5. DPLYR data manipulation (if we still have time)
-# 6. KS fitting (if we have time)
+
+
 
 
 # HYPOTHESIS TEST ON MEAN
@@ -63,6 +62,7 @@ t.test.left <- function(data, mu0, alpha)
 }
 
 t.test.left(data_vector, 73, 0.05)
+
 # And the solution from R:
 t.test(data_vector, mu = 73, alternative = "less")
 
@@ -120,13 +120,11 @@ t.test.twoTails(data_vector, 73, 0.05)
 t.test(data_vector, mu = 73, alternative = "two.sided")
 
 
-# Exercise (7 minutes)
+# At home: Exercise (7 minutes)
 # In the mtcars data is there a significant evidence that cars with 
 # 3 forward gears has less than 18 miles per gallon fuel consumption? 
 data(mtcars)
 mtcars$gear
-# Post p value and conclusion to the chat. The first one to do it before 
-# 6 pm will get bonus point. At 6 pm we will solve it together.
 
 # HYPOTHESIS TEST ON Variance (SIGMA^2)
 
@@ -215,7 +213,7 @@ pnorm(z, lower.tail = FALSE)
 prop.test(13173, 25468, p=0.5, alt="greater",
           correct=FALSE)
 
-# Exercise (7 minutes)
+# At home:  Exercise (7 minutes)
 # In the StarWars movies are there more male or female characters?
 # Is the proportion greater than 0.15?
 library(dplyr)
