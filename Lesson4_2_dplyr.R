@@ -1,12 +1,16 @@
-# 02/11/2021
+# Created: 02/11/2021
+# Updated: 02/10/2023
 # Vitalii Zhukov
 # COSC 6323
 
 # DPLYR (https://dplyr.tidyverse.org), part of tidyverse
 # mutate, select, filter, summarise, arrange
 # all combined by group_by
-
 # CHEAT SHEET: https://github.com/rstudio/cheatsheets/blob/master/data-transformation.pdf
+
+# Plan
+# 1. DPLYR data manipulation (if we still have time)
+# 2. KS fitting (if we have time)
 
 library(dplyr)
 
