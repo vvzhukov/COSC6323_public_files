@@ -1,5 +1,5 @@
 # Created 02/26/2021
-# Update 02/25/2022
+# Update 02/17/2023
 # Vitalii Zhukov
 # COSC 6323
 
@@ -7,9 +7,11 @@
 # http://www.sthda.com/english/wiki/paired-samples-t-test-in-r
 # https://rcompanion.org/rcompanion/d_09.html
 # https://stat-methods.com/home/paired-samples-t-test-r/
+# https://regenerativetoday.com/a-complete-guide-to-confidence-interval-t-test-and-z-test-in-r/
 
 # Plan:
 # 1. Inferences for two populations: Pooled t.test 
+#   TASK 0 (detailed review)
 #   TASK 1
 #   EXERCISE    
 # 2. Paired t-test 
@@ -17,6 +19,79 @@
 #   TASK 3
 #   WORKFLOW
 #   EXERCISE
+
+# 0. TASK 0
+# Using the information in the heart disease data set, 
+# find out if the Cholesterol level of the male population 
+# is less than the cholesterol level of the female population 
+# in the significance level of 0.05.
+
+#install.packages("kmed)
+library(kmed)
+data(heart)
+?heart
+
+# Step 1. Set up the hypothesis and alpha level
+
+# Lets start with the assumption that the mean cholesterol lvl
+# for male and female population is the same. 
+
+# H0: µ1 = µ2
+# where µ1 - cholosterol lvl for male, µ2 - for female
+
+# Based on the problem definition
+# H1: µ1 < µ2
+# and significance level α = 0.05
+
+# Step 2. Select appropriate statistics
+
+# We are going to use t-statistic to compare two means:
+# Formula:
+# t = (x̄1 - x̄2)/√((s1^2 / n1) + (s2^2 / n2))
+
+# Degrees of freedom:
+# df = ((s1^2 / n1) + (s2^2 / n2))^2 / 
+#               ((s1^2 / n1)^2 / (n1-1)) + (s2^2 / n2)^2 / (n2-1))
+# I agree, it looks scary :) will use R here...
+
+# Step 3. Calculate statistic and p-value
+t.test(heart$chol[heart$sex==T], heart$chol[heart$sex==F],
+       alternative = 'less' , conf.level = 0.95)
+
+# As per the output above, the t-statistic is -3.0135 and 
+# the p-value is 0.001541.
+
+# What if if will assume that the standard deviation 
+# of the samples in this data are super close to the sd 
+# in the general population?
+
+# We will get almost a similar result with a z-test. 
+# Library ‘BSDA’ has this function z.test. here is how to use it:
+library(BSDA)
+BSDA::z.test(heart$chol[heart$sex==T], 
+             heart$chol[heart$sex==F], 
+             alternative = "less", 
+             mu = 0, 
+             sigma.x = sd(heart$chol[heart$sex==T]), 
+             sigma.y = sd(heart$chol[heart$sex==F]), 
+             conf.level = 0.95)
+
+# We got same statistic and similar p-value
+# Parameters:
+# Setting mu as 0 because our null hypothesis is the mean 
+# cholesterol level of the male and female population is equal. 
+# That means the difference between the two means is zero. 
+# The mu parameter takes the difference in mean in the case 
+# of two mean comparisons.
+
+# Step 4. Come up with a decision rule
+# p-value is less than the alpha we will reject the null hypothesis
+
+# Step 5. Draw the conclusion
+# p < 0.05 => H0 rejected
+# we have enough evidence to reject the null hypothesis. 
+# So, the cholesterol level in the male population is less 
+# than the cholesterol level in the female population.
 
 # 1. TASK 1
 # Assuming that the data in mtcars follows the normal 
@@ -53,8 +128,10 @@ t.test(mpg ~ cyl, data = mtcars_cyl_4_8)
 # powers comparing to the cars with the weight < 3000.
 # Will solve it together at 5:50
 
+?mtcars
 t.test(subset(mtcars, wt > 3)$hp,
-subset(mtcars, wt < 3)$hp, alternative = "greater")
+       subset(mtcars, wt < 3)$hp, 
+       alternative = "greater")
 
 # 3. TASK 2 (Paired, MEAN + check for normality)
 # Assuming that we have two groups of mice: before and 
@@ -94,6 +171,7 @@ ggplot(my_data, aes(x=group, y=weight)) +
     geom_boxplot() +
     ggtitle(paste("Mices: before and after experiment, n =",
                   nrow(my_data)))
+# What is missing in the graph?
 
 # Important questions before tests:
 # Are two samples paired?
@@ -201,18 +279,45 @@ t.test(Data$Typical,
 
 # 6. EXERCISE
 # Is there is a significant difference in the mean 
-# scores between a pre-test and a post-test for 20 students
-# Check for normality and plot the results.
+# scores between a hw1 and hw2 scores? Is 2nd hw easier?
+# Use alpha = 0.05
+# Check for normality of the difference.
 # https://github.com/vvzhukov/COSC6323_public_files/blob/main/lesson5.csv
-exc6_data <- read.csv("lesson5.csv")
-exc6_diff <- subset(exc6_data, group == "pre")$score - 
-    subset(exc6_data, group == "post")$score
-shapiro.test(exc6_diff)
-t.test(subset(exc6_data, group == "pre")$score,
-       subset(exc6_data, group == "post")$score, paired = TRUE)
-# The answer should include:
-# 1. For normality test: stats, p-value, 
-# 2. For t.test: test stats, df, p-value
-# 3. Your conclusion
 
-# Will solve it together at 6:25
+# File lesson5.csv
+# Try to solve on your own (5-7 minutes)
+
+
+
+
+# load data
+setwd("/Users/apple/Desktop/6323_TA/COSC6323_public_files-main")
+exc6_data <- read.csv("lesson5.csv", header = T)
+
+# create new vector with difference
+exc6_diff <- subset(exc6_data, Assignment == "Homework #2")$Score - 
+    subset(exc6_data, Assignment == "Homework #1")$Score
+
+# library
+library(ggplot2)
+ggplot(data=exc6_data, aes(x=Assignment, y=Score)) + 
+    geom_boxplot() +
+    ggtitle(paste("Students score, n = ",nrow(exc6_data)/2))
+
+# check for normality
+shapiro.test(exc6_diff)
+
+library("car")
+qqPlot(exc6_diff)
+
+# The t-test is not afraid of non-normal data. When there are more 
+# than about 25 observations per group and no extreme outliers, 
+# the t-test works well even for moderately skewed distributions 
+# of the outcome variable.
+
+
+t.test(subset(exc6_data, Assignment == "Homework #1")$Score,
+       subset(exc6_data, Assignment == "Homework #2")$Score,
+       alternative = "less",
+       paired = T)
+
