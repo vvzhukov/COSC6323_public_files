@@ -5,6 +5,8 @@
 # Ref.: 
 # http://www.sthda.com/english/wiki/one-way-anova-test-in-r
 # https://www.statology.org/transform-data-in-r/
+# https://rcompanion.org/handbook/F_08.html
+# https://cran.r-project.org/web/packages/bestNormalize/vignettes/bestNormalize.html
 
 # Plan:
 # 1. Understanding ANOVA
@@ -15,7 +17,7 @@
 # 3. Homogeneous variances test
 # 4. Tukey's procedure
 # 5. Data transformations and when to use it?
-
+# 6. EXTRA MATERIAL Data normalization
 # ----------------------------------------------------------------------------------
 # Understanding ANOVA
 # ----------------------------------------------------------------------------------
@@ -236,6 +238,7 @@ df$y1_log <- log(df$y1)
 # - human performance
 # - length of chess game
 # - Certain physiological measurements (blood pressure)
+# ...
 
 
 # ----------------------------------------------------------------------------------
@@ -282,3 +285,36 @@ rating_scores <- data.frame(
 # 1) F value 2) P value 
 # 3) Df 4) Your conclusion
 # Check assumptions.
+
+
+
+
+# EXTRA MATERIAL
+# Data normalization (if we have time)
+#install.packages("bestNormalize")
+library(bestNormalize)
+x <- rgamma(1000, 1, .1)
+bn <- bestNormalize(x)
+bn
+
+# say y is related linearly to the transformed x
+y <- bn$x.t * 1 + rnorm(1000)
+
+# A log transformation does OK...
+ggplot(data.frame(x=x,y=y), aes(x, y)) +
+    geom_point() + 
+    scale_x_continuous(trans = "log", breaks = scales::log_breaks())
+
+# Create bestNormalize scale for use in ggplot (using bestNormalize object)
+bn_trans <- scales::trans_new(
+    name = "bn_trans",
+    trans = function(x) predict(bn, newdata = x),
+    inverse = function(x) predict(bn, newdata = x, inverse = TRUE)
+)
+
+
+ggplot(data.frame(x=x,y=y), aes(x, y)) +
+    geom_point() + 
+    scale_x_continuous(trans = bn_trans)
+
+
