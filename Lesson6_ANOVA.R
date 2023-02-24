@@ -18,6 +18,11 @@
 # 4. Tukey's procedure
 # 5. Data transformations and when to use it?
 # 6. EXTRA MATERIAL Data normalization
+
+
+
+
+
 # ----------------------------------------------------------------------------------
 # Understanding ANOVA
 # ----------------------------------------------------------------------------------
