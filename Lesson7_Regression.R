@@ -1,5 +1,5 @@
 # Created: 03/11/2021
-# Modified: 03/11/2022
+# Modified: 03/03/2023
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -7,12 +7,14 @@
 # 2. http://www.sthda.com/english/articles/39-regression-model
 # 3. Bruce, Peter, and Andrew Bruce. 2017. Practical Statistics for Data Scientists. O’Reilly Media.
 # 4. James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2014. An Introduction to Statistical Learning: With Applications in R. Springer Publishing Company, Incorporated.
-
+# 5. https://bookdown.org/jimr1603/Intermediate_R_-_R_for_Survey_Analysis/testing-regression-assumptions.html
 
 # PLAN:
 # EXAMPLE 1 (lm(), predict(), plot)
 # EXAMPLE 2 (train vs test, diagnostics) [3 BONUS Points]
 # EXTRA PROBLEM 1 (if we have time)
+# BONUS POINT PROBLEM
+
 
 # EXAMPLE 1
 
@@ -51,6 +53,8 @@ plot(y,x,col = "blue",main = "Height & Weight Regression",
      ylab = "Height in cm")
 
 
+
+
 # EXAMPLE 2
 
 library(tidyverse)
@@ -61,7 +65,7 @@ library(broom)
 # predicting sales units on the basis of the amount of money 
 # spent in the three advertising medias
 data("marketing", package = "datarium")
-??marketing
+??datarium::marketing
 # Inspect the data
 sample_n(marketing, 3)
 
@@ -73,7 +77,6 @@ training.samples <- marketing$sales %>%
 
 train.data  <- marketing[training.samples, ]
 test.data <- marketing[-training.samples, ]
-
 
 # Build the model
 model <- lm(sales ~ youtube, data = marketing)
@@ -99,6 +102,9 @@ ggplot(model.diag.metrics, aes(youtube, sales)) +
     stat_smooth(method = lm, se = FALSE) +
     geom_segment(aes(xend = youtube, yend = .fitted), 
                  color = "red", size = 0.3)
+
+
+
 
 # DIAGNOSTICS
 # Linear regression makes several assumptions about the data:
@@ -155,25 +161,36 @@ head(model.diag.metrics, 4)
 # Now lets check the linearity assumption
 dev.off()
 plot(model,1)
-# Limbani +2
-
 
 # HOMOGENEITY OF VARIANCE
 plot(model,3)
-
-# RESULT
-# (2) Comment for [BONUS POINT]
-
-
+# What do you think can be done to add linearity?
+# Data transformation?
 model2 <- lm(log(sales) ~ youtube, data = marketing)
 plot(model2, 3)
 
+# ‘We want a more or less horizontal line with more or less 
+# equally spread points around.’
+
+# we may use Breusch-Pagan test to identify the problem
+#   here White's test may be used for more complex cases
+#   Difference: auxiliary regression doesn’t include cross-terms 
+#   or the original squared variables
+lmtest::bptest(model)
+lmtest::bptest(model2)
+
 # NORMALITY OF RESIDUALS
 plot(model, 2)
+plot(model2, 2)
 
-# RESULT
-# (3) Comment for [BONUS POINT]
-# ... (check solutions)
+shapiro.test(model$residuals)
+# OR
+shapiro.test(model.diag.metrics$.resid)
+# OR Using pre-installed library(MASS)
+library(MASS)
+# get distribution of studentized residuals (i.e. transform residuals for test)
+sresid <- MASS::studres(model) # using MASS package function to transform data
+shapiro.test(sresid) # p value non-sign: normal distribution of residuals
 
 
 # OUTLIERS AND LEVERAGE POINTS
@@ -221,7 +238,7 @@ model.diag.metrics %>%
 df2 <- data.frame(
     x = c(marketing$youtube, 500, 600),
     y = c(marketing$sales, 80, 100)
-) # Bonus point goes to: Sadat Shahriar and Biswas, Dipayan
+)
 model2 <- lm(y ~ x, df2)
 
 par(mfrow = c(1, 2))
@@ -236,6 +253,8 @@ plot(model2, 5)
 # influential to the regression results.
 
 
+
+
 # PROBLEM 1
 # In the data set faithful, develop a 95% prediction interval of the 
 # eruption duration for the waiting time of 80 minutes.
@@ -246,13 +265,11 @@ plot(model2, 5)
 attach(faithful)     # attach the data frame
 # linear regression model
 ?faithful
-
 eruption.lm = lm(eruptions ~ waiting, data=faithful)
 summary(eruption.lm)
 
 # Extract the parameters of the estimated regression equations with 
 # the coefficients function.
-
 coefs = coefficients(eruption.lm)
 
 # Now fit the eruption duration using the estimated regression 
@@ -264,7 +281,7 @@ duration
 # So, if the waiting time since the last eruption has been 80 
 # minutes, we can expect the next one to last 4.1762 minutes.
 
-# ALTERNATIVE USING predict
+# ALTERNATIVE SOLUTION USING predict
 
 newdata = data.frame(waiting=80) # wrap the parameter
 predict(eruption.lm, newdata)
@@ -288,3 +305,21 @@ plot(faithful$waiting, eruption.res,
      main="Old Faithful Eruptions")
 
 abline(0, 0, col='red')
+
+
+
+
+# BONUS POINT PROBLEM
+data(mtcars)
+?mtcars
+
+# Build the linear model to predict fuel consumption
+# based on the car weight. Develop a 95% prediction 
+# interval of the fuel consumption for the new car 
+# that weight 5000 pounds.
+
+# # Post to the text chat: 
+# 1) P value 2) r^2 3) Predicted value 
+# 5) Any assumptions violations?
+# 6) Is there an outlier / leverage points?
+# 7) How does the removal of outlier impacts the predicted values?
