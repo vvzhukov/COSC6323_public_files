@@ -40,6 +40,7 @@ model2 <- lm(mpg~wt, data = input)
 summary(model2)
 summary(model)
 
+# Criterions to identify the quality of the model
 ?AIC
 ?BIC
 # Smaller AIC or BIC => better the fit
@@ -104,22 +105,18 @@ plot(model)
 # 2. Cross-correlation table; Multicolinerarity 
 # table
 
-X <- mtcars[,c("disp","hp","wt")]
+X <- mtcars[,c("cyl","gear", "am","disp","hp","wt")]
 library(GGally)
 ggpairs(X)
+# Relatively bad picture. high correlations everywhere
 
 # Alternatives 
-library(corpcor)
-cor2pcor(cov(X), )
+cor(X)
 
 # Alternatives 2
 library(mctest)
 omcdiag(model)
 imcdiag(model)
-
-# Alternatives 3
-library(ppcor)
-pcor(X, method = "pearson")
 
 
 # 3. Variables selection (criterion & all combinations)
