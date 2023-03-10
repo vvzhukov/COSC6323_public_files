@@ -75,38 +75,51 @@ par(mfrow=c(2, 2))
 plot(model)
 
 # What can go wrong?
-# Regression function can be wrong - missing predictors, nonlinear
-# - True regression function may have higher-order non-linear terms: 
+# Regression function can be wrong - missing predictors, 
+# nonlinear
+# - True regression function may have higher-order 
+#           non-linear terms: 
 #    X1^2 or even X1*X2
 #    How to fix? Difficult in general. 
 #    Check "added variable" and "partial residual"
 
 # Assumptions about the errors can be wrong.
 # - Errors not normally distributed (check QQ)
-# - Variance may not be constant. (sometimes transformations help)
-# - Errors may not be independent. This can affect the t, F stats.
+# - Variance may not be constant. 
+#    (sometimes transformations help)
+# - Errors may not be independent. This can 
+# affect the t, F stats.
 
-# Outliers & Influential observations: both in predictors and observations
-# - some residuals may be much longer than others => evidence of an outlier 
-# - we may change influence by dropping each observation and check the model
+# Outliers & Influential observations: both in 
+# predictors and observations
+# - some residuals may be much longer 
+#       than others => evidence of an outlier 
+# - we may change influence by dropping each 
+#        observation and check the model
 
+# There could be correlations between the variable 
+# and that might negatively imapct the performance 
+# of your model! You might get Micky Mouse result!
 
-# 2. Cross-correlation table; Multicolinerarity table
+# 2. Cross-correlation table; Multicolinerarity 
+# table
 
-ggpairs(drop_na(X))
+X <- mtcars[,c("disp","hp","wt")]
+library(GGally)
+ggpairs(X)
 
+# Alternatives 
+library(corpcor)
+cor2pcor(cov(X), )
 
-cor2pcor(cov(drop_na(X)), )
+# Alternatives 2
+library(mctest)
+omcdiag(model)
+imcdiag(model)
 
-model1 <- lm(pCitation_count_norm ~ pType + log(pAuthors_n) + 
-               pX_disc + pSA_num + cSA_num + rSA_num + pDiversity +
-               cDiversity + rDiversity + cos_mRef_mCit, 
-             data = model_data)
-# Diagnostics 1
-omcdiag(model1)
-imcdiag(model1)
+# Alternatives 3
 library(ppcor)
-pcor(drop_na(X), method = "pearson")
+pcor(X, method = "pearson")
 
 
 # 3. Variables selection (criterion & all combinations)
@@ -137,6 +150,7 @@ plot(k) # goes to quartz
 ?ols_step_best_subset
 # We can also check the best subsets picked automatically
 k <- ols_step_best_subset(model)
+k
 plot(k) # goes to quartz
 
 
@@ -162,6 +176,7 @@ data(surgical)
 
 # stepwise forward regression
 model <- lm(y ~ ., data = surgical)
+summary(model)
 ols_step_forward_p(model) 
 ols_step_forward_p(model, details = TRUE)
 
@@ -250,5 +265,3 @@ plot(models,scale="adjr2")
 #   Stepwise AIC Forward Regression
 #   Stepwise AIC Backward Regression
 #   Stepwise AIC Regression
-
-
