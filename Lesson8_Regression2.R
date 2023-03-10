@@ -1,5 +1,5 @@
 # Created 03/25/2021
-# Updated 03/25/2022
+# Updated 03/10/2023
 # Vitalii Zhukov
 # COSC 6323
 
@@ -19,9 +19,10 @@
 # PLAN
 
 # 1. Multiple regression (mtcars)
-# 2. Variables selection (criterion & all combinations)
-# 3. Variables selection (forward, backward, stepwise)
-# 4. Different package
+# 2. Cross-correlation table; Multicolinerarity table
+# 3. Variables selection (criterion & all combinations)
+# 4. Variables selection (forward, backward, stepwise)
+# 5. Different package
 
 
 # 1. Mtcars multiple regression
@@ -90,8 +91,25 @@ plot(model)
 # - we may change influence by dropping each observation and check the model
 
 
+# 2. Cross-correlation table; Multicolinerarity table
 
-# 2. Variables selection (criterion & all combinations)
+ggpairs(drop_na(X))
+
+
+cor2pcor(cov(drop_na(X)), )
+
+model1 <- lm(pCitation_count_norm ~ pType + log(pAuthors_n) + 
+               pX_disc + pSA_num + cSA_num + rSA_num + pDiversity +
+               cDiversity + rDiversity + cos_mRef_mCit, 
+             data = model_data)
+# Diagnostics 1
+omcdiag(model1)
+imcdiag(model1)
+library(ppcor)
+pcor(drop_na(X), method = "pearson")
+
+
+# 3. Variables selection (criterion & all combinations)
 
 ## Criterion
 
@@ -123,7 +141,7 @@ plot(k) # goes to quartz
 
 
 
-# 3. Variables selection (forward, backward, stepwise)
+# 4. Variables selection (forward, backward, stepwise)
 
 # Stepwise forward algorithm
 # - Begins with a model that contains no variables 
@@ -196,7 +214,7 @@ ols_step_both_aic(model)
 ols_step_both_aic(model, details = TRUE)
 
 
-# 4. Using packages
+# 5. Using packages
 library(tidyverse)
 library(caret)
 library(leaps)
@@ -227,7 +245,7 @@ summary(models)
 par(mfrow=c(1, 1))
 plot(models,scale="adjr2")
 
-# 5. Additional methods (not covering today)
+# 6. Additional methods (not covering today)
 # based on Akaike Information Criteria:
 #   Stepwise AIC Forward Regression
 #   Stepwise AIC Backward Regression
