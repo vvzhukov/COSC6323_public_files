@@ -71,6 +71,13 @@ Interc + Xdisp*x1 + Xhp*x2 + Xwt*x3
 plot(input, pch=16, col="blue",
      main="Matrix Scatterplot of mpg, disp, hp, and wt")
 
+# Standardized coefficients
+library(QuantPsyc)
+?lm.beta
+# WARNING: do not use it for models with interactions
+summary(model)
+QuantPsyc::lm.beta(model)
+
 # Diagnostic plots for the model
 par(mfrow=c(2, 2))
 plot(model)
@@ -99,8 +106,9 @@ plot(model)
 #        observation and check the model
 
 # There could be correlations between the variable 
-# and that might negatively imapct the performance 
+# and that might negatively impact the performance 
 # of your model! You might get Micky Mouse result!
+
 
 # 2. Cross-correlation table; Multicolinerarity 
 # table
@@ -122,7 +130,6 @@ imcdiag(model)
 # 3. Variables selection (criterion & all combinations)
 
 ## Criterion
-
 ##  (largest) R^2: Goodness of fit
 ##  (lowest) AIC: Akaike Information Criteria 
 ##  (lowest) SBIC: Sawa's Bayesian Information Criteria 
@@ -134,9 +141,17 @@ imcdiag(model)
 
 # All possible subsets of the set of potential variables
 # If we have K independent variables => 2^K distinct subsets
+# And nowadays it is not that impossible 
+# to calculate all options as it used to be.
 
 library(olsrr)
 model3 <- lm(mpg ~ disp + hp + wt + qsec, data = mtcars)
+?ols_step_all_possible
+
+# Mallows' Cp-statistic estimates the size of 
+# the bias that is introduced into the predicted 
+# responses by having an underspecified model.
+
 k <- ols_step_all_possible(model3)
 k
 plot(k) # goes to quartz
