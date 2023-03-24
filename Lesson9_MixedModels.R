@@ -1,5 +1,5 @@
 # Created: 04/01/2021
-# Modified: 04/01/2022
+# Modified: 03/24/2023
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -9,6 +9,8 @@
 # https://rpubs.com/mlmcternan/BC-lme
 # http://jakewestfall.org/misc/Winter2014.pdf
 # https://bookdown.org/carillitony/bailey/chp6.html
+# https://www.statology.org/weighted-least-squares-in-r/
+# https://advstats.psychstat.org/book/mregression/selection.php
 
 # PLAN
 # 0. Dummy variables
@@ -16,6 +18,9 @@
 #   INT AND NUM VECTORS
 #   FACTOR MANIPULATION
 #   DUMMY INTERACTION
+# 1. VARIABLES SELECTION
+# 2. WEIGHTED LEAST SQUARES
+
 # EXTRA
 # 0. GLM vs LM
 # 1. Fit the Non-Multilevel Models
@@ -40,18 +45,22 @@ library(DT)
 
 ?UCBAdmissions
 
+# Here
+
 ucb_admissions <- UCBAdmissions %>% 
     as_tibble() %>%  
-    janitor::clean_names() %>% 
+    janitor::clean_names(., "lower_camel") %>% # camelCase variable names
     glimpse()
 
 # If we use Admit as an argument in lm, R will correctly 
 # treat Admit as single dummy variable with two categories
+ucb_admissions$admit <- as.factor(ucb_admissions$admit)
 
 ucb_admissions %>%
-    lm(n ~ admit, .)
+    lm(n ~ admit, .) %>%
+    summary()
 
-# R has coded Rejected as 1 and Admitted as 0. The regression 
+# The regression 
 # indicates that mean of admitted is 146.25 while the mean 
 # number rejected is 230.92. We can confirm that directly as well.
 
@@ -71,6 +80,7 @@ ucb_admissions %>%
 
 # Question: What is the mean number of applications for the deptD?
 
+
 # Differences in Mean
 
 # Number of applications by Gender (alpha = 0.05)
@@ -81,15 +91,18 @@ ucb_admissions %>%
 # Assume equal variances
 ucb_admissions %>%
     t.test(n ~ gender, ., var.equal = TRUE)
+
 ucb_admissions %>%
     lm(n ~ gender, .) %>% 
-    tidy()
+    summary()
 
 # Assume unequal variances
+ucb_admissions$cit <- c(rep('US',20),'CA','US','CA','US')
 ucb_admissions %>%
-    t.test(n ~ gender, .)
+    t.test(n ~ cit, .)
+
 ucb_admissions %>%
-    lm_robust(n ~ gender, .) %>% 
+    lm_robust(n ~ cit, .) %>% 
     tidy()
 
 
@@ -101,7 +114,7 @@ mtcars %>%
 # check mpg for automatic and manual transmission
 mtcars %>%
     lm_robust(mpg ~ am, .) %>% 
-    tidy()
+    summary()
 
 # but what should we do if the var is not coerced by 0 and 1?
 # Let's check mpg for different cylinders cars (4,6,8):
@@ -131,7 +144,7 @@ mtcars %>%
 # Use forcats package
 
 ### Coerce cyl to a factor
-mtcars$cyl %<>% 
+mtcars$cyl %<>% # take a look at this type of pype
     as.character() %>% # forcats will not coerce integer or numeric vectors to factors
     as_factor()
 mtcars$cyl %>% str()
@@ -153,8 +166,10 @@ mtcars %>%
 # the base case. 
 
 # fct_revel changes the order of a factor by hand.
+
+fct_relevel(mtcars$cyl, c("4", "6", "8"))
 mtcars %>%
-    lm(mpg ~ fct_relevel(cyl, levels = c("4", "6", "8")), .) %>% 
+    lm(mpg ~ fct_relevel(cyl, c("4", "6", "8")), .) %>% 
     tidy()
 
 # We can permanently re-level cylinders
@@ -190,19 +205,117 @@ mtcars %>%
     mutate(am = factor(am, levels = c(0,1), 
                        labels = c("automatic", "manual"))) %>% 
     lm_robust(mpg ~ hp*am, .) %>% 
-    tidy()
-lm(mpg ~ hp*am, data=mtcars)
+    summary()
+
+# How does the interaction look?
+model <- lm(mpg ~ hp*am, data=mtcars)
+summary(model)
+
+library(sjPlot)
+library(sjmisc)
+library(ggplot2)
+
+plot_model(model, type = c("int"))
 # Note: you do not need to explicitly show β1 and β2
 # in the equation. 
 # R checks the dummy variable and the interactions
+
+# Is there a way to use only interaction in your model?
 # In case you want just the interaction:
 # mpg = β0 + β1*am*hp + e
 
 mtcars %>% 
     lm_robust(mpg ~ I(hp*am), .) %>% 
-    tidy()
+    summary()
 # I() is used to inhibit the interpretation of operators 
 # in formulas, so they are used as arithmetic operators
+
+# VARIABLES SELECTION
+library(MASS)
+library(leaps)
+
+data(birthwt)
+head(birthwt)
+
+birthwt$smoke <- as.factor(birthwt$smoke)
+birthwt$ht <- as.factor(birthwt$ht)
+birthwt$ui <- as.factor(birthwt$ui)
+
+# All combinations
+all<-regsubsets(bwt~lwt+race+smoke+ptl+ht+ui+ftv, 
+                data=birthwt, 
+                nbest=1, 
+                nvmax=7)
+info <- summary(all)
+cbind(info$which, round(cbind(rsq=info$rsq, 
+                                adjr2=info$adjr2, 
+                                cp=info$cp, bic=info$bic, 
+                                rss=info$rss), 3))
+
+# BACKWARD
+null<-lm(bwt~ 1, data=birthwt) # 1 here means the intercept 
+full<-lm(bwt~ lwt+race+smoke+ptl+ht+ui+ftv, data=birthwt)
+stepAIC(full, 
+        scope=list(lower=null, upper=full), 
+        data=birthwt, direction='backward')
+
+# FORWARD
+stepAIC(null, 
+        scope=list(lower=null, upper=full), 
+        data=birthwt, direction='forward')
+
+# STEPWISE
+stepAIC(null, scope=list(lower=null, upper=full), 
+        data=birthwt, direction='both')
+
+# Recommendations:
+# 
+# large set of candidate predictors from which you wish to 
+# extract a few–i.e., if you're on a fishing expedition–you 
+# should generally go forward
+
+# modest-sized set of potential variables from which you wish 
+# to eliminate a few–i.e., if you're fine-tuning some prior 
+# selection of variables–you should generally go backward
+
+# be careful not to cast too wide a net, selecting variables 
+# that are only accidentally related to your dependent variable
+
+# WEIGHTED LEAST SQUARES
+
+df <- data.frame(hours=c(1, 1, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 8),
+                 score=c(48, 78, 72, 70, 66, 92, 93, 75, 75, 80, 95, 97, 90, 96, 99, 99))
+
+#fit simple linear regression model
+model1 <- lm(score ~ hours, data = df)
+
+#view summary of model
+summary(model1)
+
+#define weights to use
+wt <- 1 / lm(abs(model1$residuals) ~ model1$fitted.values)$fitted.values^2
+
+#perform weighted least squares regression
+wls_model <- lm(score ~ hours, data = df, weights=wt)
+
+#view summary of model
+summary(wls_model)
+
+# From the output we can see that the coefficient 
+# estimate for the predictor variable hours changed 
+# a bit and the overall fit of the model improved.
+
+# the predicted values produced 
+# by the weighted least squares model are much closer 
+# to the actual observations compared to the predicted 
+# values produced by the simple linear regression model.
+
+# Larger r^2 indicates that the weighted least squares model is 
+# able to explain more of the variance in exam scores 
+# compared to the simple linear regression model.
+# These metrics indicate that the weighted least squares 
+# model offers a better fit to the data compared to the 
+# simple linear regression model.
 
 
 
