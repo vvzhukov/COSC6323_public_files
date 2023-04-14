@@ -1,6 +1,402 @@
-# 04/23/2021
+# Created 04/23/2021
+# Updated 04/14/2023
 # Vitalii Zhukov
 # COSC 6323
+# Ref.: 
+# 1. https://www.r-bloggers.com/2021/04/logistic-regression-r-tutorial/
+# 2. https://rpubs.com/jhtrygier/logistic_regression
+# 3. https://www.r-bloggers.com/2020/05/multinomial-logistic-regression-with-r/
+# 4. https://datasciencebeginners.com/2018/12/20/multinomial-logistic-regression-using-r/
+
+# PLAN
+# 1. Logistic regression
+#   Example 1 (Full model, model adjustments, model compariosnos, plot)
+#   Example 2 (more visualisations, dependence plot, feature importance)
+#   Example 3 (data split, preformance)
+# 2. Multinomial regression
+#   Example 1 (Building a Model, Predicting & Validating)
+#   Example 2 (possible issue: overfitting)
+
+
+
+# Example 1
+
+library(readr)
+library(tidymodels)
+library(ggplot2)
+library(dplyr)
+library(plotmo)
+
+# Read the dataset and convert the target variable to a factor
+bank_df <- read_csv2("https://raw.githubusercontent.com/vvzhukov/COSC6323_public_files/main/Lesson11_data/bank.csv")
+bank_df$y = as.factor(bank_df$y)
+
+# Plot job occupation against the target variable
+ggplot(bank_df, aes(job, fill = y)) +
+  geom_bar() +
+  coord_flip()
+
+bankmodel_full <- glm(y ~ .,data=bank_df, family = 'binomial')
+summary(bankmodel_full)
+
+# Fit a reduced model by dropping the term for height
+bankmodel_reduced <- glm(y ~ job + marital + campaign + poutcome,data=bank_df, family = 'binomial')
+summary(bankmodel_reduced) 
+
+# Compare full model to reduced model; what null hypothesis is implied here?
+anova(bankmodel_full, bankmodel_reduced, test = "Chi")
+
+# How do we decide what to drop?
+# use add1 or drop1:
+drop1(bankmodel_full, test = "Chi")
+add1(bankmodel_reduced, test = "Chi")
+
+
+
+# Example 2
+# Need multiple packages to be installed?
+pkgs <- c("corrplot", "faraway", "glmnet", "ggplot2", "plotmo", "pdp", "vip", "earth", "rms")
+lib <- installed.packages()[, "Package"]
+install.packages(setdiff(pkgs, lib))
+
+# Load western collaborative group study set from faraway package
+data(wcgs, package = "faraway")
+# print first few records
+head(wcgs)  
+# Print general structure of object
+str(wcgs)
+
+# Extract the three columns of interest and print a summary of each
+summary(wcgs[, c("chd", "height", "cigs")])
+
+# Fit an additive logistic regression model
+lr.fit <- glm(chd ~ height + cigs,family = binomial(link = "logit"), data = wcgs)
+
+# Print a summary of the fitted model
+summary(lr.fit)
+
+# Universal wy to interpret effects in a model - plots. The benefit is that your boss doesn’t care about odds, but they probably 
+# care about the effects of your variables.
+
+# Fit a reduced model by dropping the term for height
+lr.fit.reduced <- glm(chd ~ cigs, family = binomial(link = "logit"), data = wcgs)
+
+# Compare full model to reduced model; what null hypothesis is implied here?
+anova(lr.fit.reduced, lr.fit, test = "Chi")
+
+# The plotmo package
+plotmo::plotmo(lr.fit)
+
+library(ggplot2)
+library(pdp)
+
+# Set theme for ggplot2 graphics
+theme_set(theme_bw())
+
+# These plots will be linear on the logit scale but nonlinear on the probability scale 
+pdp::partial(lr.fit, pred.var = "cigs", prob = TRUE, plot = TRUE, rug = TRUE,
+        plot.engine = "ggplot2") +
+  ggplot2::geom_rug(data = wcgs, aes(x = cigs), alpha = 0.2, inherit.aes = FALSE)
+
+# The above is a partial dependence plot, it was introduced by Jerome Freedman, in that paper he proposed these plots as a way of 
+#interpreting gradient boosted modeling. The main difference between a partial dependence plot and one of the earlier plots is that 
+#rather than holding height constant,a partial dependence plot measures the impact of cigs while taking the average value of other 
+#variables into account at the given level. The charts from above are called a “poor mans” partial dependence plot, as they include 
+#less information, but they’re a quick and dirty way of assessing variables.
+
+# What’s happening on the x-axis? Rug plots - the information on the bottom includes the quantity of data at each level of the data. 
+# We can make some inferences about the distribution of the variable’s data based on this, there is much more data from 0 to 50 rather 
+# than above 50 for # of cigs a day, so be careful not to extrapolate based on the values for which you have less data. Just eyeball 
+# this data – direction & magnitude. If I plot the pdp for every variable in the model, plot them all on the same y scale.
+
+# here, we're plotting the predicted probability of 
+# developing CHD as a function of cigs while holding height constant at its 
+# median value (i.e., 70 inches)
+newd <- data.frame("cigs" = 0:99, height = 70)
+prob <- predict(lr.fit, newdata = newd, type = "response")
+plot(newd$cigs, prob, type = "l", lty = 1, las = 1, 
+     xlab = "Number of cigarettes smoked per day", 
+     ylab = "Conditional probabiluty of CHD")
+
+# This is a marginal effect plot that holds height constant at 70, then plotting what happens at the predictive probability when 
+# increasing cigarettes smoked per day and plotting them. Something to keep in mind.
+
+lr.fit.all <- glm(chd ~ ., family = binomial(link = "logit"), data = wcgs)#, maxit = 9999)
+# Let's inspect the data a bit more; we'll start with a SPLOM
+y <- ifelse(wcgs$chd == "yes", 1, 0)
+palette("Okabe-Ito")
+pairs(wcgs, col = adjustcolor(y + 1, alpha.f = 0.1))
+palette("default")  # back to default color pal
+
+# Which columns contain missing values?
+sapply(wcgs, FUN = anyNA)
+
+# Which columns contain missing values?
+sapply(wcgs, FUN = function(column) mean(is.na(column)))
+
+# Look at correlations between numeric features
+num <- sapply(wcgs, FUN = is.numeric)  # identify numeric columns
+(corx <- cor(wcgs[, num], use = "pairwise.complete.obs"))  # simple correlation matrix
+
+# Visualize correlations; can be useful if you have a lot of features
+corrplot::corrplot(corx, method = "square", order = "FPC", type = "lower", diag = TRUE)
+
+# We can see some high degrees of linear association, the two blood pressure variables are more closely related, linearly, than 
+# our height and weight. We could assess whether to handle these variables as having multicollinearity by using variance inflation 
+# factors, but, in this case, we’re not really at that point.
+
+# What about categorical features?
+xtabs(~ behave + dibep + chd, data = wcgs)
+
+# There are two variables that perfectly separate the heart disease from non-heart disease variables with categorical data.
+
+# Refit model without leakage or redundant features
+summary(lr.fit.all <- glm(chd ~ . - typechd - timechd - behave, family = binomial(link = "logit"), data = wcgs))
+
+# How to measure relative influence/importance of each feature?
+vip::vi(lr.fit.all)  # see ?vip::vi for details
+# one of the ways is to look at the regression output (z-statistic, t-statistics, equal to the coefficient divided by the error)
+
+# The default for vip() is to take the regression model, take the absolute value of that statistic, then indicate the direction. 
+#There are specific ways with specific models to measure variable importance. The absolute value of standardized coefficients 
+#doesn’t apply to trees, you could check permutation importance in scikit learn, it more generally measures importance for 
+#any model. If we wanted to say “how much does a variable impact predictive accuracy in the model?” for a medium-sized 
+#inexpensive model (like logistic regression) is “leave one covariant out” importance, or “loco” importance. If we leave 
+#out a covariant, then measure the predictive accuracy, then recalculate the predictive accuracy, we can measure how 
+#important a variable is for predictions.
+
+# Variable selection using backward elimination with AIC
+lr.fit.back <- MASS::stepAIC(lr.fit.all, direction = "backward", trace = 0)
+lr.fit.back
+# Here we’re assessing the model with AIC - AIC, BIC, and others will penalize your model when the additional complexity of the 
+# model isn’t as valuable as the predictive accuracy you gain. It works for any generalized linear model and it’s better suited 
+# than a p-value for this job than p-values. How you define whether a variable gets dropped or doesn’t changes over time.
+
+
+
+# Example 3
+
+mydata <- read.csv('https://raw.githubusercontent.com/finnstats/finnstats/main/binary.csv')
+str(mydata)
+
+mydata$admit <- as.factor(mydata$admit)
+mydata$rank <- as.factor(mydata$rank)
+
+xtabs(~admit + rank, data = mydata)
+
+# Data Partition
+# create training and test datasets basis 80:20 ratio
+set.seed(1234)
+ind <- sample(2, nrow(mydata), replace = T, prob = c(0.8, 0.2))
+train <- mydata[ind==1,]
+test <- mydata[ind==2,]
+
+mymodel <- glm(admit ~ gpa + gre + rank, data = train, family = 'binomial')
+#glm indicates generalized linear model and family is binomial because admit variable has only o and 1.
+summary(mymodel)
+# More stars indicate more statistical significance. In this case gre and level rank 2 is not statistically 
+# significant. Let’s drop gre and re-run the model because gre is not significant.
+
+mymodel <- glm(admit ~ gpa + rank, data = train, family = 'binomial') 
+summary(mymodel) 
+# AIC is better
+
+
+# Let’s do the prediction based on the above model
+p1 <- predict(mymodel, train, type = 'response')
+head(p1)
+
+# Now you can see only 28% of chances are there the first candidate to admit the project. Similarly second 
+# candidate 29%, third candidate 68% and so on..
+
+head(train)
+
+# Misclassification error – train data
+pred1 <- ifelse(p1>0.5, 1, 0)
+tab1 <- table(Predicted = pred1, Actual = train$admit)
+tab1
+# Based on 208+29 = 237 correct classifications and 73+15 =88 misclassifications. Let’s calculate 
+# the misclassifications error rate based on below code
+missclass_train <- 1 - sum(diag(tab1))/sum(tab1)
+missclass_train
+
+# Misclassification error – test data
+p2 <- predict(mymodel, test, type = 'response')
+pred2 <- ifelse(p2>0.5, 1, 0)
+tab2 <- table(Predicted = pred2, Actual = test$admit)
+tab2
+
+missclass_test <- 1 - sum(diag(tab2))/sum(tab2)
+missclass_test
+
+
+
+# Multinomial regression
+# Example 1
+
+# Multinomial regression is used to predict the nominal target variable. In case the target variable is of ordinal type, 
+# then we need to use ordinal logistic regression. In this tutorial, we will see how we can run multinomial logistic 
+# regression. As part of data preparation, ensure that data is free of multicollinearity, outliers, and high influential leverage points.
+
+library(readr)
+tissue <- read_csv("https://raw.githubusercontent.com/vvzhukov/COSC6323_public_files/main/Lesson12_data/BreastTissue.csv")
+# Checking the structure of adult data
+str(tissue)
+
+# Combining levels of target variable and deleting the case # as it is a unique variable.
+tissue <- tissue[, -1]
+tissue$Class <- as.factor(tissue$Class)
+levels(tissue$Class)[levels(tissue$Class) %in% c("fad", "gla", "mas")] <- "other"
+levels(tissue$Class)
+
+# Building a Multinomial Regression Model
+# We will be predicting Class of the breast tissue using Breast Tissue data from the UCI machine learning repository.
+#Splitting the data using a function from dplyr package
+
+set.seed(1234)
+ind <- sample(2, nrow(tissue), replace = T, prob = c(0.7, 0.3))
+train <- tissue[ind==1,]
+test <- tissue[ind==2,]
+
+# Setting the reference
+# Unlike binary logistic regression in multinomial logistic regression, we need to define the reference level.
+train$Class <-  relevel(train$Class, ref = "adi")
+
+# Training the multinomial classification model
+require(nnet)
+# Training the multinomial model
+multinom_model <- multinom(Class ~ ., data = tissue)
+# Checking the model
+summary(multinom_model)
+
+# Just like binary logistic regression, we need to convert the coefficients to odds by taking the exponential of the coefficients.
+exp(coef(multinom_model))
+# The predicted values are saved as fitted.values in the model object. Let’s see the top 6 observations.
+head(round(fitted(multinom_model), 2))
+# The multinomial regression predicts the probability of a particular observation to be part of the said level. 
+# This is what we are seeing in the above table. Columns represent the classification levels and rows represent the observations. 
+# This means that the first six observation are classified as car.
+
+# Predicting & Validating the model
+
+# Predicting the values for train dataset
+train$ClassPredicted <- predict(multinom_model, newdata = train, "class")
+# Building classification table
+tab <- table(train$Class, train$ClassPredicted)
+# Calculating accuracy - sum of diagonal elements divided by total obs
+round((sum(diag(tab))/sum(tab))*100,2)
+# Our model accuracy has turned out to be 98.68% in the training dataset.
+
+# Predicting the class on test dataset.
+
+test$ClassPredicted <- predict(multinom_model, newdata = test, "class")
+# Building classification table
+tab <- table(test$Class, test$ClassPredicted)
+tab
+
+# We were able to achieve 100% accuracy in the test dataset and this number is very close to train, and thus we conclude that 
+# the model is good and is also stable.
+
+
+
+# Example 2
+
+# Loading the wine data
+wine <- read.csv('https://raw.githubusercontent.com/vvzhukov/COSC6323_public_files/main/Lesson12_data/wine.data.csv', header= F)
+colnames(wine) <- c("Type", "Alcohol", "Malic", "Ash", "Alcalinity", "Magnesium", "Phenols", "Flavanoids", 
+                    "Nonflavanoids", "Proanthocyanins", 
+                    "Color", "Hue", "Dilution", "Proline")
+
+# The wine dataset contains the results of a chemical analysis of wines grown in a specific area of Italy. Three types of wine are 
+# represented in the 178 samples, with the results of 13 chemical analyses recorded for each sample. 
+
+# Checking the structure of wine dataset
+str(wine)
+
+# Loading the dplyr package
+library(dplyr)
+
+wine$Type <- as.factor(wine$Type)
+# Using sample_frac to create 70 - 30 slipt into test and train
+train <- sample_frac(wine, 0.7)
+sample_id <- as.numeric(rownames(train)) # rownames() returns character so as.numeric
+test <- wine[-sample_id,]
+
+# To build the multinomial model we have a couple of functions in R. However, in this example we use mutinom() function from {nnet} 
+# package. Remember when we build logistic models we need to set one of the levels of the dependent variable as a baseline. We 
+# achieve this by using relevel() function. In other functons or algorithms, this process is generally automated.
+
+# Setting the basline 
+train$Type <- relevel(train$Type, ref = "3")
+# Once the baseline has been specified, we use multinom() function to fit the model and then use summary() function to explore 
+# the beta coefficients of the model.
+
+# Loading the nnet package
+require(nnet)
+# Training the multinomial model
+multinom.fit <- multinom(Type ~ Alcohol + Color -1, data = train)
+# We used -1 in the formula to delete the intercept. We think that it does not make sense in the model and so we removed it.
+
+# Checking the model
+summary(multinom.fit) # The output coefficients are represented in the log of odds.
+
+# The output of summary contains the table for coefficients and a table for standard error. Each row in the coefficient table 
+# corresponds to the model equation. The first row represents the coefficients for Type 2 wine in comparison to our baseline 
+# which is Type 3 wine and the second row represents the coefficients for Type 2 wine in comparison to our baseline which is Type 3 wine.
+
+# This ratio of the probability of choosing Type 2 wine over the baseline that is Type 3 wine is referred to as relative risk 
+# (often described as odds). However, the output of the model is the log of odds. To get the relative risk IE odds ratio, we need to 
+# exponentiate the coefficients.
+
+## extracting coefficients from the model and exponentiate
+exp(coef(multinom.fit))
+
+# The relative risk ratio for a one-unit increase in the variable color is .491 for being in Type 1 wine vs. Type 3 wine. Here a 
+# value of 1 represents that there is no change. However, a value greater than 1 represents an increase and value less than 1 represents a decrease.
+
+# We can also use probabilities to understand our model.
+head(probability.table <- fitted(multinom.fit))
+
+# The table above indicates that the probability of 89th obs being Type 2 wine is 90.0%, it being Type 1 wine is 8.9%and it being Type 3 
+# wine is 0.0%. Thus we can conclude that the 89th observation is Type 2. On a similar note – 57th observation is Type 1, 170th observations 
+# isType 3 and so on.
+
+# We will now check the model accuracy by building classification table. So let us first build the classification table for training dataset 
+# and calculate the model accuracy.
+
+# Predicting the values for train dataset
+train$precticed <- predict(multinom.fit, newdata = train, "class")
+
+# Building classification table
+ctable <- table(train$Type, train$precticed)
+
+# Calculating accuracy - sum of diagonal elements divided by total obs
+round((sum(diag(ctable))/sum(ctable))*100,2)
+
+# Accuracy in training dataset. We now repeat the above on the unseen dataset that tests dataset.
+
+# Predicting the values for train dataset
+test$precticed <- predict(multinom.fit, newdata = test, "class")
+
+# Building classification table
+ctable <- table(test$Type, test$precticed)
+
+# Calculating accuracy - sum of diagonal elements divided by total obs
+round((sum(diag(ctable))/sum(ctable))*100,2)
+
+# Is there a problem???
+# Overfitting!
+# The accuracy of the test dataset turns out to be less as compared to training dataset. So we have a 
+# problem of overfitting here. Despite what accuracy we get the process of building the multinomial 
+# logistic regression remains the same.
+
+
+
+
+
+
+# EXTRA MATERIAL
+# BLOCK DESIGN
 # Ref.: 
 # 1. https://www.geeksforgeeks.org/completely-randomized-design-with-r-programming/
 # 2. https://stat.ethz.ch/~meier/teaching/anova/block-designs.html
