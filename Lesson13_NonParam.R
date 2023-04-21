@@ -1,5 +1,5 @@
 # Created 04/30/2021
-# Updated 04/29/2022
+# Updated 04/21/2023
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -72,7 +72,7 @@ ggboxplot(my_data$weight,
 # mice differs from 25g (two-tailed test)?
 
 # One-sample wilcoxon test
-res <- wilcox.test(my_data$weight, mu = 19)
+res <- wilcox.test(my_data$weight, mu = 25)
 # Printing the results
 res 
 
@@ -88,9 +88,15 @@ res$p.value
 wilcox.test(my_data$weight, mu = 25,
             alternative = "less")
 
+wilcox.test(unique(my_data$weight), mu = 25,
+            alternative = "less")
+
 # test whether the median weight of mice is 
 # greater than 25g (one-tailed test)
 wilcox.test(my_data$weight, mu = 25,
+            alternative = "greater")
+
+wilcox.test(unique(my_data$weight), mu = 25,
             alternative = "greater")
 
 # Exercise #1
@@ -101,8 +107,6 @@ details <- c(8.2, 7.5, 8.1, 7.7, 8.2,
              8.6, 8.1, 8.0, 7.8, 7.9)
 # (1) what are main assumptions?
 # (2) which test we are using and why? 
-# Answer should include: p-value, conclusion and 
-# short answers to the questions (1) and (2) 
 
 wilcox.test(details, mu = 8,
             alternative = "less")
@@ -174,7 +178,7 @@ detail2 <- c(8.3, 7.2, 8.2, 7.9, 8.6,
              7.4, 8.6, 7.5, 7.5, 8.4,
              8.8, 8.3, 8.0, 7.9, 8.1)
 
-# Answer should include: stat, p-value, conclusion
+# Solution
 wilcox.test(detail1, detail2,
             exact = FALSE, alternative = "greater")
 
@@ -430,7 +434,7 @@ library("SnowballC")
 library("wordcloud")
 library("RColorBrewer")
 
-filePath <- "http://www.sthda.com/sthda/RDoc/example-files/martin-luther-king-i-have-a-dream-speech.txt"
+filePath <- "https://raw.githubusercontent.com/vvzhukov/COSC6323_public_files/main/Lesson13_data/spring23_comments.txt"
 text <- readLines(filePath)
 
 # Load the data as a corpus
