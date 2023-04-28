@@ -1,4 +1,5 @@
 # Created 05/06/2022
+# Updated 04/28/2023
 # Vitalii Zhukov
 # COSC 6323
 # Ref.: 
@@ -12,6 +13,7 @@
 # Autocorrelation
 # ACF/PACF
 # ARIMA
+# Examples
 
 # What is ARMA model?
 # Yt follows an ARMA(p,q) if and only if it can be 
@@ -20,10 +22,11 @@
 
 # What is ARIMA model?
 # Variant of ARMA
-# ARIMA(p,r,q), where p is the number of lags for the 
-# autoregressive part, q the number of lags of the Moving 
-# average part and r is the number of time we should 
-# differentiate in order to obtain a stationary ARMA model.
+# ARIMA(p,r,q), where 
+# p is the number of lags for the autoregressive part, 
+# q the number of lags of the Moving average part and 
+# r is the number of time we should differentiate in 
+# order to obtain a stationary ARMA model.
 
 library('ggplot2')
 library('forecast')
@@ -82,6 +85,10 @@ abline(reg=lm(AirPassengers~time(AirPassengers)))
 
 ?acf
 acf(AirPassengers)
+
+# stationary check
+adf.test(AirPassengers)
+
 
 ?arima
 AR <- arima(AirPassengers, order = c(1,0,0))
@@ -234,14 +241,15 @@ acf(na.exclude(rainseriesforecasts2$residuals), lag.max=20)
 # correlations
 Box.test(rainseriesforecasts2$residuals, 
          lag=20, type="Ljung-Box")
-# little evidence of non-zero autocorrelations in the in-sample 
-# forecast errors at lags 1-20
+# little evidence of non-zero autocorrelations in the 
+# in-sample forecast errors at lags 1-20
 
 plot.ts(rainseriesforecasts2$residuals)
 
 
-# To check whether the forecast errors are normally distributed 
-# with mean zero, we can plot a histogram of the forecast errors
+# To check whether the forecast errors are normally 
+# distributed with mean zero, we can plot a histogram of 
+# the forecast errors
 
 plotForecastErrors <- function(forecasterrors) {
     # make a histogram of the forecast errors:
@@ -290,8 +298,11 @@ Box.test(skirtsseriesforecasts2$residuals,
 skirtsseriesdiff1 <- diff(skirtsseries, differences=1)
 plot.ts(skirtsseries)
 plot.ts(skirtsseriesdiff1)
+
 # The resulting time series of first differences (above) 
-# does not appear to be stationary in mean.
+# does not appear to be stationary in mean. We might test it:
+adf.test(skirtsseries)
+adf.test(skirtsseriesdiff1)
 
 skirtsseriesdiff2 <- diff(skirtsseries, differences=2)
 plot.ts(skirtsseriesdiff2)
@@ -366,8 +377,6 @@ acf(volcanodustseries, lag.max=20, plot=FALSE)
 # The autocorrelations for lags 1, 2, 3 are positive, and 
 # decrease in magnitude with increasing lag
 
-pacf(volcanodustseries, lag.max=20)
-pacf(volcanodustseries, lag.max=20, plot=FALSE)
 # partial autocorrelation at lag 1 is positive and exceeds 
 # the significance bounds (0.666), while the partial 
 # autocorrelation at lag 2 is negative and also exceeds the 
