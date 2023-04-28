@@ -87,9 +87,19 @@ abline(reg=lm(AirPassengers~time(AirPassengers)))
 acf(AirPassengers)
 
 # stationary check
-adf.test(AirPassengers)
+apts <- ts(AirPassengers, frequency=12)
+adf.test(apts, alternative = 'stationary', k = 12)
+# non stationary data
 
+plot(decompose(AirPassengers))
 
+# Model Identification and Estimation
+findbest <- auto.arima(AirPassengers)
+findbest
+
+plot(forecast(findbest,h=20))
+
+# Create ARIMA prediction model
 ?arima
 AR <- arima(AirPassengers, order = c(1,0,0))
 # Here order is a specification of the non-seasonal part of 
@@ -97,61 +107,44 @@ AR <- arima(AirPassengers, order = c(1,0,0))
 # are the AR order, the degree of differencing, and the MA order.
 print(AR)
 
-# Plot time series with fitted data
-ts.plot(AirPassengers)
-AR_fit <- AirPassengers - residuals(AR)
-points(AR_fit, type = "l", col = 2, lty = 2)
+fit <- arima(AirPassengers, order=c(0, 1, 1), list(order=c(0, 1, 0), period = 12))
+fit
 
-# Forecasting
-# 1-step forecast
-predict_AR <- predict(AR)
+fore <- predict(fit, n.ahead=24)
+# calculate upper (U) and lower (L) prediction intervals
+U <- fore$pred + 2*fore$se 
+# se: standard error (quantile is 2 as mean=0)
+L <- fore$pred - 2*fore$se
+# plot observed and predicted values
+ts.plot(AirPassengers, fore$pred, U, L, col=c(1, 2, 4, 4), lty=c(1, 1, 2, 2))
+library(graphics)
+legend("topleft", c("Actual", "Forecast", "Error Bounds (95% prediction interval)"), 
+       col=c(1, 2, 4),lty=c(1, 1, 2))
 
-# 1-step forecast using $pred[1]
-predict_AR$pred[1]
+# Residual analysis
+res <- residuals(fit)  # get residuals from fit
+# check acf and pacf of residuals
 
-# Alternatively Using predict to make 1-step 
-# through 10-step forecasts
-predict(AR, n.ahead = 10)
+# The sample autocorrelation function (ACF) for a series gives 
+# correlations between the series xt and lagged values of the 
+# series for lags of 1, 2, 3, and so on.
+acf(res)
 
-# time series plus the forecast and 95% prediction intervals
-ts.plot(AirPassengers, xlim = c(1949, 1961))
-AR_forecast <- predict(AR, n.ahead = 10)$pred
-AR_forecast_se <- predict(AR, n.ahead = 10)$se
-points(AR_forecast, type = "l", col = 2)
-points(AR_forecast - 2*AR_forecast_se, 
-       type = "l", col = 2, lty = 2)
-points(AR_forecast + 2*AR_forecast_se, 
-       type = "l", col = 2, lty = 2)
+# The partial autocorrelation function (PACF) plays an 
+# important role in data analyses aimed at identifying the 
+# extent of the lag in an autoregressive model.
+pacf(res)
 
-# Moving average
-# Fitting the MA model to AirPassengers
-MA <- arima(AirPassengers, order = c(0,0,1))
-print(MA)
 
-# Time series with the MA fitted values
-ts.plot(AirPassengers)
-MA_fit <- AirPassengers - resid(MA)
-points(MA_fit, type = "l", col = 2, lty = 2)
+qqnorm(residuals(fit))
+qqline(residuals(fit))
+# The linearity of the points suggests that the data are 
+# normally distributed with mean = 0.
 
-# Forecasting using MA
-# 1-step forecast based on MA
-predict_MA <- predict(MA)
-predict_MA$pred[1]
+library(tseries)
+adf.test(fit$residuals, alternative ="stationary")
+# the residuals of our ARIMA prediction model is stationary
 
-predict(MA,n.ahead=10)
-
-ts.plot(AirPassengers, xlim = c(1949, 1961))
-MA_forecasts <- predict(MA, n.ahead = 10)$pred
-MA_forecast_se <- predict(MA, n.ahead = 10)$se
-points(MA_forecasts, type = "l", col = 2)
-points(MA_forecasts - 2*MA_forecast_se, type = "l", col = 2, lty = 2)
-points(MA_forecasts + 2*MA_forecast_se, type = "l", col = 2, lty = 2)
-
-# AIC/BIC, lower - better
-AIC(AR)
-AIC(MA)
-BIC(AR)
-BIC(MA)
 
 # Another example 1
 # Age of Death of Successive Kings of England
